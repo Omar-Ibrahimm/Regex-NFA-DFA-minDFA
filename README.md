@@ -1,4 +1,4 @@
-# FSM (Finite State Machine) Automata Generator
+# Regex --> NFA --> DFA --> Minimized DFA
 
 A tool for converting regular expressions to Non-deterministic Finite Automata (NFA), Deterministic Finite Automata (DFA), and Minimized DFAs.
 
