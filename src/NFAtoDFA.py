@@ -5,7 +5,6 @@ This module provides functionality to convert a Non-deterministic Finite Automat
 to a Deterministic Finite Automaton (DFA) using the subset construction algorithm.
 """
 
-from typing import Set, FrozenSet
 from NFA import *
 from DFA import *
 
