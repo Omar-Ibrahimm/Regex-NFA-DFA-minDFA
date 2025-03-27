@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.light {
+    --background: 255, 255, 255;
+    --toggler: 37, 99, 235;
+    --toggler-hover: 29, 78, 216;
+    --filler: 4b5563;
+}
+
+.dark {
+    --background: 29, 29, 29;
+    --toggler: 55, 65, 81;
+    --toggler-hover: 29, 78, 216;
+    --filler: d1d5db;
+}

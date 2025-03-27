@@ -6,6 +6,7 @@ interface TransitionProps {
   toPos: { x: number; y: number };
   isSelected: boolean;
   isDarkMode: boolean;
+  transitionIndex: number;
 }
 
 const Transition = ({
@@ -16,6 +17,7 @@ const Transition = ({
   toPos,
   isSelected,
   isDarkMode,
+  transitionIndex,
 }: TransitionProps) => {
   const isSelfTransition = from === to;
   const dx = toPos.x - fromPos.x;
@@ -58,9 +60,10 @@ const Transition = ({
   // Quadratic bezier control point
   const midX = (startX + endX) / 2;
   const midY = (startY + endY) / 2;
-  const offset = 50;
-  const ctrlX = midX + (-dy / distance) * offset;
-  const ctrlY = midY + (dx / distance) * offset;
+  const offset = 50 + (transitionIndex * 30);
+  const angle = transitionIndex % 2 === 0 ? 1 : -1;
+  const ctrlX = midX + (-dy / distance) * offset * angle;
+  const ctrlY = midY + (dx / distance) * offset * angle;
 
   return (
     <g>
