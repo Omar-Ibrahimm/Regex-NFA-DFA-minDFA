@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FaSun, FaMoon } from 'react-icons/fa';
+import { Switch } from '@mui/material';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 const ThemeSwitch = () => {
     const [isDarkMode, setIsDarkMode] = useState(
@@ -15,23 +17,28 @@ const ThemeSwitch = () => {
     }, [isDarkMode]);
 
     return (
-        <div
-            className={`relative w-16 h-8 rounded-full cursor-pointer p-1 
-                        flex items-center 
-                        ${isDarkMode ? 'bg-accent' : 'bg-border'}`}
-            onClick={() => setIsDarkMode(!isDarkMode)}
-        >
-            <div
-                className={`w-6 h-6 rounded-full bg-primary shadow-md transform transition-transform duration-300 
-                            flex items-center justify-center
-                            ${isDarkMode ? 'translate-x-8' : 'translate-x-0'}`}
-            >
-                {isDarkMode ? (
-                    <FaMoon className="text-blue-400" />
-                ) : (
-                    <FaSun className="text-yellow-400" />
-                )}
-            </div>
+        <div className="flex items-center gap-2 cursor-pointer">
+            <LightModeIcon sx={{ color: '#fbbf24' }} />
+            <Switch
+                checked={isDarkMode}
+                onChange={() => setIsDarkMode(!isDarkMode)}
+                color="default"
+                sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: '#60a5fa', // Moon color (light blue)
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: '#60a5fa',
+                    },
+                    '& .MuiSwitch-switchBase': {
+                        color: '#fbbf24', // Sun color (yellow)
+                    },
+                    '& .MuiSwitch-switchBase + .MuiSwitch-track': {
+                        backgroundColor: '#fbbf24',
+                    }
+                }}
+            />
+            <DarkModeIcon sx={{ color: '#60a5fa' }} />
         </div>
     );
 };

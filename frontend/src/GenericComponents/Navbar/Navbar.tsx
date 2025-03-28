@@ -14,7 +14,7 @@ const NavBar = () => {
                     </div>
 
                     <div className="flex items-center h-full">
-                        <button className="px-3 py-2 h-full text-primary transition-all duration-300 hover:bg-button mr-1" >
+                        <button className="px-3 py-2 h-full text-primary transition-all duration-300 hover:bg-button_secondary mr-1" >
                             Go Back
                         </button>
                         <ThemeSwitch />

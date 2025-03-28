@@ -9,6 +9,7 @@ export default {
         accent: 'rgb(var(--color-accent) / <alpha-value>)',
         txt: 'rgb(var(--color-text) / <alpha-value>)',
         button: 'rgb(var(--color-button) / <alpha-value>)',
+        button_secondary: 'rgb(var(--color-button-secondary) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
       },
     },
