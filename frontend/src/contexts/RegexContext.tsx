@@ -1,16 +1,17 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import { FSM } from "../pages/types";
 
-interface FSM {
+interface FSMContext {
   type: "NFA" | "DFA" | "MIN_DFA";
-  data: any; // Replace 'any' with your actual FSM type
+  data: FSM;
 }
 
 interface RegexContextType {
   regex: string;
   isRegexLoaded: boolean;
-  fsms: FSM[];
+  fsms: FSMContext[];
   setRegex: (regex: string) => void;
-  setFsms: (fsms: FSM[]) => void;
+  setFsms: (fsms: FSMContext[]) => void;
   setIsRegexLoaded: (loaded: boolean) => void;
 }
 
@@ -26,18 +27,24 @@ const RegexContext = createContext<RegexContextType>({
 export const RegexProvider = ({ children }: { children: ReactNode }) => {
   const [regex, setRegex] = useState("");
   const [isRegexLoaded, setIsRegexLoaded] = useState(false);
-  const [fsms, setFsms] = useState<FSM[]>([
+  const [fsms, setFsms] = useState<FSMContext[]>([
     {
       type: "NFA",
-      data: {},
+      data: {
+        startingState: ""
+      },
     },
     {
       type: "DFA",
-      data: {},
+      data: {
+        startingState: ""
+      },
     },
     {
       type: "MIN_DFA",
-      data: {},
+      data: {
+        startingState: ""
+      },
     },
   ]);
 

@@ -1,6 +1,6 @@
 import { useState, FormEvent } from "react";
 import { useRegexContext } from "../../contexts/RegexContext";
-import { FSM } from "../../GenericComponents/Interfaces/FSMState";
+import { FSM } from "../types";
 
 const sampleData: FSM = {
   startingState: "S0",
