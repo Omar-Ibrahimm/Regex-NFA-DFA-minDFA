@@ -1,35 +1,72 @@
 import { useState, FormEvent } from "react";
+import { useRegexContext } from "../../contexts/RegexContext";
 
 const RegexForm = () => {
-  const [regex, setRegex] = useState<string>("");
+  const [localRegex, setLocalRegex] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { setRegex, setIsRegexLoaded, setFsms } = useRegexContext();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    setIsLoading(true);
+    setIsRegexLoaded(false);
+
+    try {
+      // TODO: Add API here to fetch the array of 3 jsons
+
+      // Update context
+      setRegex(localRegex);
+      setFsms([
+        {
+          type: "NFA",
+          data: {},
+        },
+        {
+          type: "DFA",
+          data: {},
+        },
+        {
+          type: "MIN_DFA",
+          data: {},
+        },
+      ]); // TODO: set with the response when API is implemented
+      setIsRegexLoaded(true);
+      setLocalRegex("");
+    } catch (error) {
+      console.error("Error generating FSMs:", error);
+      // Handle error (maybe add error state to context)
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="mb-8">
+    <form onSubmit={handleSubmit} className="mb-8">
+      <div className="flex items-center gap-4">
         <input
           type="text"
-          value={regex}
-          onChange={(e) => setRegex(e.target.value)}
+          value={localRegex}
+          onChange={(e) => setLocalRegex(e.target.value)}
           placeholder="Enter regular expression to visualize (e.g., a|b*)"
-          className="flex-1 p-3 w-2/3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-txt bg-secondary"
+          className="flex-1 p-3 border-2 border-border rounded-lg
+            focus:outline-none focus:border-accent
+            text-txt bg-secondary placeholder:text-txt/50
+            transition-colors duration-200"
         />
+        
         <button
           type="submit"
-          disabled={regex === "" || isLoading}
-          className="px-6 py-3 ml-4 bg-gradient-to-r from-button to-button/90 text-white rounded-lg 
+          disabled={localRegex === "" || isLoading}
+          className="px-6 py-3 bg-gradient-to-r from-button to-button/90 text-white rounded-lg 
                 hover:from-button/90 hover:to-button/80 disabled:from-gray-400 disabled:to-gray-500 
                 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg 
                 disabled:shadow-none disabled:opacity-70"
         >
           {isLoading ? "Generating..." : "Generate FSMs"}
         </button>
-      </form>
-    </>
+      </div>
+    </form>
   );
 };
 
