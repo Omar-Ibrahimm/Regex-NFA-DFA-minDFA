@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import ThemeSwitch from "./ThemeSwitch";
@@ -14,13 +14,13 @@ const NavBar = () => {
   }, [location]);
 
   return (
-    <nav className="w-full border-b border-border bg-secondary">
+    <nav className="w-full border-b border-border bg-secondary top-0 sticky overflow-hidden">
       <div className="mx-auto sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <h1 className="text-3xl font-extrabold text-txt hover:text-accent transition-colors tracking-wide drop-shadow-lg">
               <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-                Regex Automata Visualizer
+                <Link to="/">Regex Automata Visualizer</Link>
               </span>
             </h1>
           </div>
