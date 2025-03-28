@@ -1,12 +1,21 @@
+import { useNavigate } from "react-router-dom";
+import { useRegexContext } from "../../contexts/RegexContext";
+
 interface FSMCardProps {
   fsmType: string;
   hasRegex: boolean;
 }
 
 const FSMCard = ({ fsmType, hasRegex }: FSMCardProps) => {
-  console.log("called");
+  const { isRegexLoaded } = useRegexContext();
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/fsm/${fsmType}`);
+  };
+
   return (
-    <div
+    <button
       className={`p-8 w-full h-48 border-2 rounded-xl transition-all duration-200
           ${
             hasRegex
@@ -14,6 +23,8 @@ const FSMCard = ({ fsmType, hasRegex }: FSMCardProps) => {
               : "border-dashed border-txt/30 bg-secondary/50 cursor-not-allowed"
           }
           flex items-center justify-center text-center`}
+      onClick={handleClick}
+      disabled={!isRegexLoaded}
     >
       <p
         className={`text-lg ${
@@ -24,7 +35,7 @@ const FSMCard = ({ fsmType, hasRegex }: FSMCardProps) => {
           ? `Click here to visualize ${fsmType}`
           : "Enter a regex to visualize"}
       </p>
-    </div>
+    </button>
   );
 };
 

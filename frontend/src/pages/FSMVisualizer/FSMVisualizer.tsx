@@ -1,7 +1,7 @@
 import { useState } from "react";
 import StateNode from "./StateNode";
 import Transition from "./Transition";
-import { FSM, FSMState } from "./FSMState";
+import { FSM, FSMState } from "../../GenericComponents/Interfaces/FSMState";
 
 interface FSMVisualizerProps {
   isDarkMode: boolean;

@@ -1,6 +1,18 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+
 import ThemeSwitch from "./ThemeSwitch";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const NavBar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [canGoBack, setCanGoBack] = useState(false);
+
+  useEffect(() => {
+    setCanGoBack(window.history.state && window.history.state.idx > 0);
+  }, [location]);
+
   return (
     <nav className="w-full border-b border-border bg-secondary">
       <div className="mx-auto sm:px-6 lg:px-8">
@@ -14,7 +26,14 @@ const NavBar = () => {
           </div>
 
           <div className="flex items-center h-full">
-            <button className="px-3 py-2 h-full text-primary transition-all duration-300 hover:bg-button_secondary mr-1">
+            <button
+              onClick={() => canGoBack && navigate(-1)}
+              disabled={!canGoBack}
+              className={`px-3 py-2 h-full text-primary transition-all duration-300 
+                        hover:bg-button_secondary mr-1 gap-1 
+                        ${!canGoBack ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              <ArrowBackIcon className="text-txt" />
               Go Back
             </button>
             <ThemeSwitch />

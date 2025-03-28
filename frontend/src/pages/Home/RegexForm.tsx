@@ -1,5 +1,30 @@
 import { useState, FormEvent } from "react";
 import { useRegexContext } from "../../contexts/RegexContext";
+import { FSM } from "../../GenericComponents/Interfaces/FSMState";
+
+const sampleData: FSM = {
+  startingState: "S0",
+  S0: {
+    isTerminatingState: false,
+    a: ["S1"],
+    b: ["S0"],
+  },
+  S1: {
+    isTerminatingState: false,
+    a: ["S0"],
+    b: ["S2"],
+  },
+  S2: {
+    isTerminatingState: false,
+    a: ["S0"],
+    b: ["S3"],
+  },
+  S3: {
+    isTerminatingState: true,
+    a: ["S0"],
+    b: ["S0"],
+  },
+};
 
 const RegexForm = () => {
   const [localRegex, setLocalRegex] = useState<string>("");
@@ -20,15 +45,15 @@ const RegexForm = () => {
       setFsms([
         {
           type: "NFA",
-          data: {},
+          data: sampleData,
         },
         {
           type: "DFA",
-          data: {},
+          data: sampleData,
         },
         {
           type: "MIN_DFA",
-          data: {},
+          data: sampleData,
         },
       ]); // TODO: set with the response when API is implemented
       setIsRegexLoaded(true);
@@ -54,7 +79,7 @@ const RegexForm = () => {
             text-txt bg-secondary placeholder:text-txt/50
             transition-colors duration-200"
         />
-        
+
         <button
           type="submit"
           disabled={localRegex === "" || isLoading}

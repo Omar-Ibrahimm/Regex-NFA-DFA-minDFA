@@ -5,7 +5,7 @@ import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 const ThemeSwitch = () => {
   const [isDarkMode, setIsDarkMode] = useState(
-    document.documentElement.classList.contains("dark"),
+    !document.documentElement.classList.contains("dark"),
   );
 
   useEffect(() => {
