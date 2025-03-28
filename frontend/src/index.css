@@ -2,16 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-.light {
-    --background: 255, 255, 255;
-    --toggler: 37, 99, 235;
-    --toggler-hover: 29, 78, 216;
-    --filler: 4b5563;
-}
+@layer base {
+  :root {
+    --color-primary: 15 23 42;
+    --color-secondary: 241 245 249;
+    --color-accent: 59 130 246;
+    --color-text: 15 23 42;
+    --color-border: 223 222 218;
+    --color-button: 209 213 219;
+  }
 
-.dark {
-    --background: 29, 29, 29;
-    --toggler: 55, 65, 81;
-    --toggler-hover: 29, 78, 216;
-    --filler: d1d5db;
+  .dark {
+    --color-primary: 241 245 249;
+    --color-secondary: 15 23 42;
+    --color-accent: 96 165 250;
+    --color-text: 241 245 249;
+    --color-border: 51 65 85;
+    --color-button: 30 58 138;
+  }
 }

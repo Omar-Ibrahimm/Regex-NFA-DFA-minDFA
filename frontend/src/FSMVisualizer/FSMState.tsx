@@ -7,4 +7,3 @@ export interface FSM {
   startingState: string;
   [state: string]: FSMState | string;
 }
-

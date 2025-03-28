@@ -60,7 +60,7 @@ const Transition = ({
   // Quadratic bezier control point
   const midX = (startX + endX) / 2;
   const midY = (startY + endY) / 2;
-  const offset = 50 + (transitionIndex * 30);
+  const offset = 50 + transitionIndex * 30;
   const angle = transitionIndex % 2 === 0 ? 1 : -1;
   const ctrlX = midX + (-dy / distance) * offset * angle;
   const ctrlY = midY + (dx / distance) * offset * angle;
