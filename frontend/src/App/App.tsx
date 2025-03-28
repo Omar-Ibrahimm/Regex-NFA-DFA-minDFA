@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import NavBar from '../GenericComponents/Navbar/Navbar';
-import HomePage from '../pages/Home/HomePage';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import NavBar from "../GenericComponents/Navbar/Navbar";
+import HomePage from "../pages/Home/HomePage";
 
 const App = () => {
   return (
