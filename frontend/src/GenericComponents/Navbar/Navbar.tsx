@@ -20,7 +20,7 @@ const NavBar = () => {
           <div className="flex items-center">
             <h1 className="text-3xl font-extrabold text-txt hover:text-accent transition-colors tracking-wide drop-shadow-lg">
               <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
-                Regex → NFA → DFA → minDFA
+                Regex Automata Visualizer
               </span>
             </h1>
           </div>

@@ -1,3 +1,4 @@
+################### BACKEND ###################
 # Python bytecode
 __pycache__/
 *.py[cod]
@@ -37,7 +38,7 @@ ENV/
 
 # Project specific
 output_folder/
-*.json
+backend/*.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -46,8 +47,9 @@ output_folder/
 .coverage
 htmlcov/
 .pytest_cache/
+###############################################
 
-
+################### FRONTEND ###################
 # Logs
 logs
 *.log
@@ -61,6 +63,7 @@ node_modules
 dist
 dist-ssr
 *.local
+package-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -72,3 +75,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+################################################
