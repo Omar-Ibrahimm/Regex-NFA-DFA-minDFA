@@ -11,20 +11,29 @@ const FSMVisualizer = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const { fsmType } = useParams<{ fsmType: string }>();
   const { FSMs } = useFSMContext();
-  const fsm = FSMs.find(f => f.type === fsmType?.toUpperCase());
+  const fsm = FSMs.find((f) => f.type === fsmType?.toUpperCase());
 
-  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({});
+  const [positions, setPositions] = useState<
+    Record<string, { x: number; y: number }>
+  >({});
 
   // Dragging logic
   const [draggingState, setDraggingState] = useState<string | null>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  const [inputText, setInputText] = useState("");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSimState, setCurrentSimState] = useState<string | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+  const [simulationDelay, setSimulationDelay] = useState(1000);
+
   useEffect(() => {
     if (fsm) {
-        const centerX = 500;
-        const centerY = 300;
-        const radius = 200;
-        const angleStep = (2 * Math.PI) / fsm.states.length;
+      const centerX = 500;
+      const centerY = 300;
+      const radius = 200;
+      const angleStep = (2 * Math.PI) / fsm.states.length;
 
       const init: Record<string, { x: number; y: number }> = {};
       fsm.states.forEach((s: State, i: number) => {
@@ -46,11 +55,14 @@ const FSMVisualizer = () => {
 
     const styles = getComputedStyle(canvas);
     const stateColor = styles.getPropertyValue("--color-state") || "#000";
-    const startingColor = styles.getPropertyValue("--color-state-starting") || "#3b82f6";
-    const terminatingColor = styles.getPropertyValue("--color-state-terminating") || "#10b981";
-    const transitionColor = styles.getPropertyValue("--color-transition") || "#333";
+    const startingColor =
+      styles.getPropertyValue("--color-state-starting") || "#3b82f6";
+    const terminatingColor =
+      styles.getPropertyValue("--color-state-terminating") || "#10b981";
+    const transitionColor =
+      styles.getPropertyValue("--color-transition") || "#333";
     const textColor = styles.getPropertyValue("--color-text") || "#000";
-  
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Group transitions by from-to pair
@@ -88,8 +100,14 @@ const FSMVisualizer = () => {
       const headlen = 10;
       ctx.beginPath();
       ctx.moveTo(endX, endY);
-      ctx.lineTo(endX - headlen * Math.cos(angle - Math.PI / 6), endY - headlen * Math.sin(angle - Math.PI / 6));
-      ctx.lineTo(endX - headlen * Math.cos(angle + Math.PI / 6), endY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(
+        endX - headlen * Math.cos(angle - Math.PI / 6),
+        endY - headlen * Math.sin(angle - Math.PI / 6),
+      );
+      ctx.lineTo(
+        endX - headlen * Math.cos(angle + Math.PI / 6),
+        endY - headlen * Math.sin(angle + Math.PI / 6),
+      );
       ctx.closePath();
       ctx.fillStyle = textColor;
       ctx.fill();
@@ -97,8 +115,14 @@ const FSMVisualizer = () => {
       // Symbols
       ctx.fillStyle = textColor;
       ctx.font = "14px sans-serif";
-      const formattedSymbols = symbols.map(sym => sym === "epsilon" ? "ε" : sym).join(", ");
-      ctx.fillText(formattedSymbols, (startX + endX) / 2 + 5, (startY + endY) / 2 - 5);
+      const formattedSymbols = symbols
+        .map((sym) => (sym === "epsilon" ? "ε" : sym))
+        .join(", ");
+      ctx.fillText(
+        formattedSymbols,
+        (startX + endX) / 2 + 5,
+        (startY + endY) / 2 - 5,
+      );
     });
 
     // Draw states
@@ -109,11 +133,15 @@ const FSMVisualizer = () => {
       // Circle
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, STATE_RADIUS, 0, 2 * Math.PI);
-      ctx.strokeStyle = state.id === fsm.startingState
-        ? startingColor
-        : state.isTerminating
-          ? terminatingColor
-          : stateColor;
+      const isSimSelected =
+        currentSimState === state.id && fsm.type === "MIN_DFA";
+      ctx.strokeStyle = isSimSelected
+        ? "brown"
+        : state.id === fsm.startingState
+          ? startingColor
+          : state.isTerminating
+            ? terminatingColor
+            : stateColor;
       ctx.lineWidth = 2;
       ctx.stroke();
       if (state.isTerminating) {
@@ -129,7 +157,35 @@ const FSMVisualizer = () => {
       ctx.font = "bold 14px sans-serif";
       ctx.fillText(state.id, pos.x, pos.y);
     }
-  }, [fsm, positions]);
+  }, [fsm, positions, currentSimState]);
+
+  useEffect(() => {
+    if (!isSimulating || !fsm || fsm.type !== "MIN_DFA") return;
+    
+    if (currentIndex >= inputText.length) {
+      setIsSimulating(false);
+      const currentState = fsm.states.find(s => s.id === currentSimState);
+      setStatus(currentState?.isTerminating ? "Matched!" : "Failed!");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const symbol = inputText[currentIndex];
+      const transition = fsm.transitions.find(
+        (t) => t.from === currentSimState && t.symbol === symbol,
+      );
+
+      if (transition) {
+        setCurrentSimState(transition.to);
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        setIsSimulating(false);
+        setStatus("Failed!");
+      }
+    }, simulationDelay); // Use dynamic delay
+
+    return () => clearTimeout(timer);
+  }, [isSimulating, currentIndex, inputText, currentSimState, fsm, simulationDelay]);
 
   // Handle dragging
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -155,7 +211,7 @@ const FSMVisualizer = () => {
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - offset.x;
     const y = e.clientY - rect.top - offset.y;
-    setPositions(prev => ({
+    setPositions((prev) => ({
       ...prev,
       [draggingState]: { x, y },
     }));
@@ -166,18 +222,27 @@ const FSMVisualizer = () => {
   };
 
   const handleExportPNG = () => {
+    setIsSimulating(false);
+    setCurrentSimState(null);
+    setCurrentIndex(0);
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataURL = canvas.toDataURL("image/png");
-  
     const link = document.createElement("a");
     link.download = `${fsm?.type || "fsm"}.png`;
     link.href = dataURL;
     link.click();
   };
-  
 
-  if (!fsm) return <div className="text-center text-red-500 mt-10">FSM not found</div>;
+  const handleReset = () => {
+    setIsSimulating(false);
+    setCurrentSimState(null);
+    setCurrentIndex(0);
+    setStatus(null);
+  };
+
+  if (!fsm)
+    return <div className="text-center text-red-500 mt-10">FSM not found</div>;
 
   return (
     <div className="min-h-screen bg-primary pt-10">
@@ -203,6 +268,59 @@ const FSMVisualizer = () => {
 
         <FSMTextDisplay fsm={fsm} selectedState={draggingState} />
       </div>
+      {fsm.type === "MIN_DFA" && (
+        <div className="flex items-center justify-center gap-4 mb-6 mt-5">
+          <input
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            placeholder="Enter input text to simulate"
+            className="p-2 rounded bg-card border border-card-border text-text"
+          />
+          <div className="flex items-center gap-2">
+            <label className="text-text">Delay:</label>
+            <input
+              type="range"
+              min="100"
+              max="3000"
+              step="100"
+              value={simulationDelay}
+              onChange={(e) => setSimulationDelay(Number(e.target.value))}
+              className="w-32"
+            />
+            <span className="text-text w-20">{simulationDelay}ms</span>
+          </div>
+          {status && (
+              <div className={`text-lg font-bold ${
+                status.includes("Matched") ? "text-green-500" : "text-red-500"
+              }`}>
+                {status}
+              </div>
+            )}
+          <div className="text-text font-mono min-w-[40px] text-center">
+            {currentIndex}
+          </div>
+          <button
+            onClick={() => {
+              if (!fsm.startingState || inputText.length === 0) return;
+              setStatus(null);
+              if (!currentSimState) {
+                setCurrentSimState(fsm.startingState);
+                setCurrentIndex(0);
+              }
+              setIsSimulating(true);
+            }}
+            className="bg-btn text-text px-2 py-1 rounded hover:bg-btn-hover"
+          >
+            ▶️ Play All
+          </button>
+          <button
+            onClick={handleReset}
+            className="bg-btn text-text px-2 py-1 rounded hover:bg-btn-hover"
+          >
+            🔄 Reset
+          </button>
+        </div>
+      )}
     </div>
   );
 };

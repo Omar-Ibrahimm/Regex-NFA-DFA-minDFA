@@ -29,15 +29,25 @@ const FSMTextDisplay = ({ fsm, selectedState }: FSMTextDisplayProps) => {
 
       <h2 className="text-lg font-bold mb-2">FSM {fsm.type} Summary</h2>
 
-      <p><span className="font-semibold">Type:</span> {fsm.type}</p>
-      <p><span className="font-semibold">Starting State:</span> {fsm.startingState}</p>
+      <p>
+        <span className="font-semibold">Type:</span> {fsm.type}
+      </p>
+      <p>
+        <span className="font-semibold">Starting State:</span>{" "}
+        {fsm.startingState}
+      </p>
 
       <p className="mt-2 font-semibold">States:</p>
       <ul className="ml-4 list-disc">
         {fsm.states.map((state: State) => (
           <li key={state.id}>
-            <span className={state.id === selectedState ? "font-bold text-text-selected" : ""}>
-              {state.id}{state.isTerminating ? " (Terminating)" : ""}
+            <span
+              className={
+                state.id === selectedState ? "font-bold text-text-selected" : ""
+              }
+            >
+              {state.id}
+              {state.isTerminating ? " (Terminating)" : ""}
             </span>
           </li>
         ))}
@@ -46,9 +56,14 @@ const FSMTextDisplay = ({ fsm, selectedState }: FSMTextDisplayProps) => {
       <p className="mt-2 font-semibold">Transitions:</p>
       <ul className="ml-4 list-disc">
         {fsm.transitions.map((t: Transition, idx) => {
-          const isSelected = selectedState && (t.from === selectedState || t.to === selectedState);
+          const isSelected =
+            selectedState &&
+            (t.from === selectedState || t.to === selectedState);
           return (
-            <li key={idx} className={isSelected ? "text-green-500 font-semibold" : ""}>
+            <li
+              key={idx}
+              className={isSelected ? "text-green-500 font-semibold" : ""}
+            >
               {t.from} → [{t.symbol === "epsilon" ? "ε" : t.symbol}] → {t.to}
             </li>
           );
