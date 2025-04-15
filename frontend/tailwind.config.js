@@ -4,15 +4,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "rgb(var(--color-primary) / <alpha-value>)",
-        secondary: "rgb(var(--color-secondary) / <alpha-value>)",
-        accent: "rgb(var(--color-accent) / <alpha-value>)",
-        txt: "rgb(var(--color-text) / <alpha-value>)",
-        button: "rgb(var(--color-button) / <alpha-value>)",
-        button_secondary: "rgb(var(--color-button-secondary) / <alpha-value>)",
-        border: "rgb(var(--color-border) / <alpha-value>)",
+        primary: "var(--color-primary)",
+        card: "var(--color-card)",
+        "card-border": "var(--color-card-border)",
+
+        btn: "var(--color-button)",
+        "btn-hover": "var(--color-button-hover)",
+
+        input: "var(--color-text-input)",
+        "input-border": "var(--color-text-input-border)",
+
+        title: "var(--color-title)",
+        text: "var(--color-text)",
+        "text-secondary": "var(--color-text-secondary)",
+
+        state: "var(--color-state)",
+        "state-terminating": "var(--color-state-terminating)",
+        "state-active": "var(--color-state-active)",
+        transition: "var(--color-transition)",
+        "transition-active": "var(--color-transition-active)",
       },
     },
   },
-  plugins: [require("tailwind-scrollbar-hide")],
+  plugins: [],
 };

@@ -2,46 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --color-primary: 15 23 42;
-    --color-secondary: 241 245 249;
-    --color-accent: 59 130 246;
-    --color-text: 15 23 42;
-    --color-border: 223 222 218;
-    --color-button: 10 102 194;
-    --color-button-secondary: 209 213 219;
-  }
+:root {
+  --color-primary: #f8fafc;
+  --color-card: #ffffff;
+  --color-card-border: #e2e8f0;
 
-  .dark {
-    --color-primary: 241 245 249;
-    --color-secondary: 15 23 42;
-    --color-accent: 96 165 250;
-    --color-text: 241 245 249;
-    --color-border: 51 65 85;
-    --color-button: 30 58 138;
-    --color-button-secondary: 30 58 138;
-  }
+  --color-button: #3b82f6;
+  --color-button-hover: #2563eb;
+
+  --color-text-input: #f1f5f9;
+  --color-text-input-border: #cbd5e1;
+
+  --color-title: #0f172a;
+  --color-text: #334155;
+  --color-text-secondary: #64748b;
+
+  --color-state: #93c5fd;
+  --color-state-terminating: #fca5a5;
+  --color-state-active: #7dd3fc;
+  --color-transition: #64748b;
+  --color-transition-active: #f59e0b;
 }
 
-@layer components {
-  .border-cut-effect {
-    position: relative;
-  }
+.dark {
+  --color-primary: #0f172a;
+  --color-card: #1e293b;
+  --color-card-border: #334155;
 
-  .border-cut-effect::before {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: var(--color-accent);
-    transition: width 0.3s ease;
-  }
+  --color-button: #2563eb;
+  --color-button-hover: #3b82f6;
 
-  .border-cut-effect:focus-within::before {
-    width: calc(100% - 2rem);
-  }
+  --color-text-input: #1e293b;
+  --color-text-input-border: #475569;
+
+  --color-title: #f8fafc;
+  --color-text: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+
+  --color-state: #1d4ed8;
+  --color-state-terminating: #b91c1c;
+  --color-state-active: #0284c7;
+  --color-transition: #94a3b8;
+  --color-transition-active: #d97706;
 }

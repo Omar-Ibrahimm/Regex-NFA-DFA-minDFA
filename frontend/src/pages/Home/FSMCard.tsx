@@ -1,14 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useRegexContext } from "../../contexts/RegexContext";
+import { useFSMContext } from "../../context/FSMContext";
 
 interface FSMCardProps {
-  fsmType: string;
-  hasRegex: boolean;
+  fsmType: "NFA" | "DFA" | "MIN_DFA";
 }
 
-const FSMCard = ({ fsmType, hasRegex }: FSMCardProps) => {
-  const { isRegexLoaded } = useRegexContext();
+const FSMCard = ({ fsmType }: FSMCardProps) => {
   const navigate = useNavigate();
+  const { FSMs } = useFSMContext();
 
   const handleClick = () => {
     navigate(`/fsm/${fsmType}`);
@@ -16,25 +15,15 @@ const FSMCard = ({ fsmType, hasRegex }: FSMCardProps) => {
 
   return (
     <button
-      className={`p-8 w-full h-48 border-2 rounded-xl transition-all duration-200
-          ${
-            hasRegex
-              ? "border-border hover:border-accent cursor-pointer bg-secondary"
-              : "border-dashed border-txt/30 bg-secondary/50 cursor-not-allowed"
-          }
-          flex items-center justify-center text-center`}
       onClick={handleClick}
-      disabled={!isRegexLoaded}
+      className="w-full p-12 rounded-lg border-2 border-card-border bg-card hover:shadow-lg transition-shadow disabled:cursor-not-allowed"
+      disabled={FSMs.length === 0}
     >
-      <p
-        className={`text-lg ${
-          hasRegex ? "text-txt hover:text-accent" : "text-txt/50"
-        }`}
-      >
-        {hasRegex
-          ? `Click here to visualize ${fsmType}`
-          : "Enter a regex to visualize"}
-      </p>
+      <h2 className="text-lg font-semibold text-text">
+        {FSMs.length > 0
+          ? `Click here to navigate to ${fsmType}`
+          : "Enter a regex to display the automata"}
+      </h2>
     </button>
   );
 };
