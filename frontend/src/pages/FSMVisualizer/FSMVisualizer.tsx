@@ -3,7 +3,14 @@ import { useParams } from "react-router-dom";
 import { useFSMContext } from "../../context/FSMContext";
 import { State } from "../../types/FSM";
 import FSMTextDisplay from "./FSMTextDisplay";
-import { Download, PlayArrow, Replay, CheckCircle, Cancel, Speed } from "@mui/icons-material";
+import {
+  Download,
+  PlayArrow,
+  Replay,
+  CheckCircle,
+  Cancel,
+  Speed,
+} from "@mui/icons-material";
 
 const STATE_RADIUS = 30;
 
@@ -84,68 +91,61 @@ const FSMVisualizer = () => {
         const loopRadius = STATE_RADIUS * 4;
         const startAngle = Math.PI / 4; // 45 degrees
         const endAngle = (3 * Math.PI) / 4; // 135 degrees
-        
+
         // Calculate start and end points
         const start = {
           x: fromPos.x + STATE_RADIUS * Math.cos(startAngle),
-          y: fromPos.y + STATE_RADIUS * Math.sin(startAngle)
+          y: fromPos.y + STATE_RADIUS * Math.sin(startAngle),
         };
-        
+
         const end = {
           x: fromPos.x + STATE_RADIUS * Math.cos(endAngle),
-          y: fromPos.y + STATE_RADIUS * Math.sin(endAngle)
+          y: fromPos.y + STATE_RADIUS * Math.sin(endAngle),
         };
-    
+
         // Calculate control points
         const cp1 = {
           x: fromPos.x + loopRadius * Math.cos(startAngle),
-          y: fromPos.y + loopRadius * Math.sin(startAngle)
+          y: fromPos.y + loopRadius * Math.sin(startAngle),
         };
-        
+
         const cp2 = {
           x: fromPos.x + loopRadius * Math.cos(endAngle),
-          y: fromPos.y + loopRadius * Math.sin(endAngle)
+          y: fromPos.y + loopRadius * Math.sin(endAngle),
         };
-    
+
         // Draw quadratic Bézier curve
         ctx.beginPath();
         ctx.moveTo(start.x, start.y);
-        ctx.bezierCurveTo(
-          cp1.x, cp1.y,
-          cp2.x, cp2.y,
-          end.x, end.y
-        );
+        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
         ctx.strokeStyle = transitionColor;
         ctx.lineWidth = 2;
         ctx.stroke();
-    
+
         // Calculate arrowhead position and angle
-        const arrowAngle = Math.atan2(
-          end.y - cp2.y,
-          end.x - cp2.x
-        );
-    
+        const arrowAngle = Math.atan2(end.y - cp2.y, end.x - cp2.x);
+
         // Draw arrowhead
         ctx.beginPath();
         ctx.moveTo(end.x, end.y);
         ctx.lineTo(
           end.x - 10 * Math.cos(arrowAngle - Math.PI / 6),
-          end.y - 10 * Math.sin(arrowAngle - Math.PI / 6)
+          end.y - 10 * Math.sin(arrowAngle - Math.PI / 6),
         );
         ctx.lineTo(
           end.x - 10 * Math.cos(arrowAngle + Math.PI / 6),
-          end.y - 10 * Math.sin(arrowAngle + Math.PI / 6)
+          end.y - 10 * Math.sin(arrowAngle + Math.PI / 6),
         );
         ctx.closePath();
         ctx.fillStyle = textColor;
         ctx.fill();
-    
+
         // Position symbols at the top of the loop
         const textPos = {
           x: fromPos.x + loopRadius * Math.cos(Math.PI / 2),
-          y: fromPos.y + loopRadius * 0.7
+          y: fromPos.y + loopRadius * 0.7,
         };
-        
+
         ctx.fillStyle = textColor;
         ctx.font = "14px sans-serif";
         const formattedSymbols = symbols
@@ -365,15 +365,20 @@ const FSMVisualizer = () => {
 
         <FSMTextDisplay fsm={fsm} selectedState={draggingState} />
       </div>
-      
+
       {fsm.type === "MIN_DFA" && (
         <div className="max-w-4xl mx-auto bg-card rounded-lg shadow-md p-6 mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-text">Text Match Simulation</h3>
-          
+          <h3 className="text-xl font-semibold mb-4 text-text">
+            Text Match Simulation
+          </h3>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Input Section */}
             <div className="md:col-span-2">
-              <label htmlFor="fsm-input" className="block text-sm font-medium text-text mb-2">
+              <label
+                htmlFor="fsm-input"
+                className="block text-sm font-medium text-text mb-2"
+              >
                 Input String:
               </label>
               <input
@@ -384,7 +389,7 @@ const FSMVisualizer = () => {
                 className="w-full p-3 rounded-md bg-primary border border-card-border text-text focus:outline-none focus:ring-2 focus:ring-btn"
               />
             </div>
-            
+
             {/* Simulation Speed */}
             <div>
               <label className="block text-sm font-medium text-text mb-2">
@@ -406,30 +411,36 @@ const FSMVisualizer = () => {
                 />
                 <span className="text-text text-sm ml-2">Slow</span>
               </div>
-              <div className="text-right text-text text-sm mt-1">{simulationDelay}ms</div>
+              <div className="text-right text-text text-sm mt-1">
+                {simulationDelay}ms
+              </div>
             </div>
           </div>
-          
+
           {/* Status and Controls */}
           <div className="flex flex-wrap items-center justify-between mt-6">
             <div className="flex items-center space-x-4">
               {status && (
-                <div className={`flex items-center px-4 py-2 rounded-full ${
-                  status.includes("Matched") 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-red-100 text-red-800"
-                }`}>
+                <div
+                  className={`flex items-center px-4 py-2 rounded-full ${
+                    status.includes("Matched")
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
                   {getStatusIcon()}
                   <span className="font-medium">{status}</span>
                 </div>
               )}
-              
+
               <div className="bg-muted rounded-md px-3 py-1">
                 <span className="text-text text-sm mr-2">Position:</span>
-                <span className="text-text font-mono font-bold">{currentIndex}</span>
+                <span className="text-text font-mono font-bold">
+                  {currentIndex}
+                </span>
               </div>
             </div>
-            
+
             <div className="flex space-x-3 mt-4 sm:mt-0">
               <button
                 onClick={handleStartSimulation}
@@ -443,7 +454,7 @@ const FSMVisualizer = () => {
                 <PlayArrow className="mr-1" />
                 Start Simulation
               </button>
-              
+
               <button
                 onClick={handleReset}
                 className="flex items-center px-4 py-2 bg-muted text-text rounded-md hover:bg-card-border"

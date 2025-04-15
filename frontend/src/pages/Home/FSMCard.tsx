@@ -18,24 +18,60 @@ const FSMCard = ({ fsmType }: FSMCardProps) => {
   const getFSMOutline = (type: string) => (
     <svg viewBox="0 0 100 60" className="w-full h-32">
       {/* State circles */}
-      <circle cx="20" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="50" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="80" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      
+      <circle
+        cx="20"
+        cy="30"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="50"
+        cy="30"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="80"
+        cy="30"
+        r="8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+
       {/* Transitions */}
       {type === "NFA" ? (
         <>
-          <path d="M20 30 Q35 15 50 30" stroke="currentColor" fill="none" strokeWidth="1.5" />
-          <path d="M50 30 Q65 45 80 30" stroke="currentColor" fill="none" strokeWidth="1.5" />
+          <path
+            d="M20 30 Q35 15 50 30"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
+          <path
+            d="M50 30 Q65 45 80 30"
+            stroke="currentColor"
+            fill="none"
+            strokeWidth="1.5"
+          />
         </>
       ) : (
-        <path d="M20 30 L80 30" stroke="currentColor" fill="none" strokeWidth="1.5" />
+        <path
+          d="M20 30 L80 30"
+          stroke="currentColor"
+          fill="none"
+          strokeWidth="1.5"
+        />
       )}
-      
+
       {/* Arrowheads */}
-      <path 
-        d="M78 30 L73 27 L73 33 Z" 
-        fill="currentColor" 
+      <path
+        d="M78 30 L73 27 L73 33 Z"
+        fill="currentColor"
         transform={type === "NFA" ? "rotate(180 65 30)" : ""}
       />
     </svg>
@@ -57,9 +93,7 @@ const FSMCard = ({ fsmType }: FSMCardProps) => {
       >
         {FSMs.length > 0 ? (
           <>
-            <div className="mb-4">
-              {getFSMOutline(fsmType)}
-            </div>
+            <div className="mb-4">{getFSMOutline(fsmType)}</div>
             <h2 className="text-lg font-semibold text-text">
               {fsmType} Visualization
               <span className="block text-sm text-gray-400 mt-1">
@@ -73,7 +107,7 @@ const FSMCard = ({ fsmType }: FSMCardProps) => {
           </h2>
         )}
       </motion.div>
-      
+
       {/* Animated overlay */}
       <motion.div
         className="absolute inset-0 bg-black/10 opacity-0"

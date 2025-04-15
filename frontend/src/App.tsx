@@ -8,7 +8,7 @@ const App = () => {
   return (
     <FSMProvider>
       <Router>
-      <Navbar />
+        <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/fsm/:fsmType" element={<FSMVisualizer />} />
