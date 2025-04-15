@@ -80,49 +80,123 @@ const FSMVisualizer = () => {
       const toPos = positions[to];
       if (!fromPos || !toPos) return;
 
-      const dx = toPos.x - fromPos.x;
-      const dy = toPos.y - fromPos.y;
-      const angle = Math.atan2(dy, dx);
+      if (from === to) {
+        const loopRadius = STATE_RADIUS * 4;
+        const startAngle = Math.PI / 4; // 45 degrees
+        const endAngle = (3 * Math.PI) / 4; // 135 degrees
+        
+        // Calculate start and end points
+        const start = {
+          x: fromPos.x + STATE_RADIUS * Math.cos(startAngle),
+          y: fromPos.y + STATE_RADIUS * Math.sin(startAngle)
+        };
+        
+        const end = {
+          x: fromPos.x + STATE_RADIUS * Math.cos(endAngle),
+          y: fromPos.y + STATE_RADIUS * Math.sin(endAngle)
+        };
+    
+        // Calculate control points
+        const cp1 = {
+          x: fromPos.x + loopRadius * Math.cos(startAngle),
+          y: fromPos.y + loopRadius * Math.sin(startAngle)
+        };
+        
+        const cp2 = {
+          x: fromPos.x + loopRadius * Math.cos(endAngle),
+          y: fromPos.y + loopRadius * Math.sin(endAngle)
+        };
+    
+        // Draw quadratic Bézier curve
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.bezierCurveTo(
+          cp1.x, cp1.y,
+          cp2.x, cp2.y,
+          end.x, end.y
+        );
+        ctx.strokeStyle = transitionColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    
+        // Calculate arrowhead position and angle
+        const arrowAngle = Math.atan2(
+          end.y - cp2.y,
+          end.x - cp2.x
+        );
+    
+        // Draw arrowhead
+        ctx.beginPath();
+        ctx.moveTo(end.x, end.y);
+        ctx.lineTo(
+          end.x - 10 * Math.cos(arrowAngle - Math.PI / 6),
+          end.y - 10 * Math.sin(arrowAngle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          end.x - 10 * Math.cos(arrowAngle + Math.PI / 6),
+          end.y - 10 * Math.sin(arrowAngle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fillStyle = textColor;
+        ctx.fill();
+    
+        // Position symbols at the top of the loop
+        const textPos = {
+          x: fromPos.x + loopRadius * Math.cos(Math.PI / 2),
+          y: fromPos.y + loopRadius * 0.7
+        };
+        
+        ctx.fillStyle = textColor;
+        ctx.font = "14px sans-serif";
+        const formattedSymbols = symbols
+          .map((sym) => (sym === "epsilon" ? "ε" : sym))
+          .join(", ");
+        ctx.fillText(formattedSymbols, textPos.x, textPos.y);
+      } else {
+        const dx = toPos.x - fromPos.x;
+        const dy = toPos.y - fromPos.y;
+        const angle = Math.atan2(dy, dx);
 
-      const startX = fromPos.x + STATE_RADIUS * Math.cos(angle);
-      const startY = fromPos.y + STATE_RADIUS * Math.sin(angle);
-      const endX = toPos.x - STATE_RADIUS * Math.cos(angle);
-      const endY = toPos.y - STATE_RADIUS * Math.sin(angle);
+        const startX = fromPos.x + STATE_RADIUS * Math.cos(angle);
+        const startY = fromPos.y + STATE_RADIUS * Math.sin(angle);
+        const endX = toPos.x - STATE_RADIUS * Math.cos(angle);
+        const endY = toPos.y - STATE_RADIUS * Math.sin(angle);
 
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.strokeStyle = transitionColor;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = transitionColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
-      // Arrowhead
-      const headlen = 10;
-      ctx.beginPath();
-      ctx.moveTo(endX, endY);
-      ctx.lineTo(
-        endX - headlen * Math.cos(angle - Math.PI / 6),
-        endY - headlen * Math.sin(angle - Math.PI / 6),
-      );
-      ctx.lineTo(
-        endX - headlen * Math.cos(angle + Math.PI / 6),
-        endY - headlen * Math.sin(angle + Math.PI / 6),
-      );
-      ctx.closePath();
-      ctx.fillStyle = textColor;
-      ctx.fill();
+        // Arrowhead
+        const headlen = 10;
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(
+          endX - headlen * Math.cos(angle - Math.PI / 6),
+          endY - headlen * Math.sin(angle - Math.PI / 6),
+        );
+        ctx.lineTo(
+          endX - headlen * Math.cos(angle + Math.PI / 6),
+          endY - headlen * Math.sin(angle + Math.PI / 6),
+        );
+        ctx.closePath();
+        ctx.fillStyle = textColor;
+        ctx.fill();
 
-      // Symbols
-      ctx.fillStyle = textColor;
-      ctx.font = "14px sans-serif";
-      const formattedSymbols = symbols
-        .map((sym) => (sym === "epsilon" ? "ε" : sym))
-        .join(", ");
-      ctx.fillText(
-        formattedSymbols,
-        (startX + endX) / 2 + 5,
-        (startY + endY) / 2 - 5,
-      );
+        // Symbols
+        ctx.fillStyle = textColor;
+        ctx.font = "14px sans-serif";
+        const formattedSymbols = symbols
+          .map((sym) => (sym === "epsilon" ? "ε" : sym))
+          .join(", ");
+        ctx.fillText(
+          formattedSymbols,
+          (startX + endX) / 2 + 5,
+          (startY + endY) / 2 - 5,
+        );
+      }
     });
 
     // Draw states
@@ -161,10 +235,10 @@ const FSMVisualizer = () => {
 
   useEffect(() => {
     if (!isSimulating || !fsm || fsm.type !== "MIN_DFA") return;
-    
+
     if (currentIndex >= inputText.length) {
       setIsSimulating(false);
-      const currentState = fsm.states.find(s => s.id === currentSimState);
+      const currentState = fsm.states.find((s) => s.id === currentSimState);
       setStatus(currentState?.isTerminating ? "Matched!" : "Failed!");
       return;
     }
@@ -185,7 +259,14 @@ const FSMVisualizer = () => {
     }, simulationDelay); // Use dynamic delay
 
     return () => clearTimeout(timer);
-  }, [isSimulating, currentIndex, inputText, currentSimState, fsm, simulationDelay]);
+  }, [
+    isSimulating,
+    currentIndex,
+    inputText,
+    currentSimState,
+    fsm,
+    simulationDelay,
+  ]);
 
   // Handle dragging
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -222,9 +303,7 @@ const FSMVisualizer = () => {
   };
 
   const handleExportPNG = () => {
-    setIsSimulating(false);
-    setCurrentSimState(null);
-    setCurrentIndex(0);
+    handleReset();
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataURL = canvas.toDataURL("image/png");
@@ -290,12 +369,14 @@ const FSMVisualizer = () => {
             <span className="text-text w-20">{simulationDelay}ms</span>
           </div>
           {status && (
-              <div className={`text-lg font-bold ${
+            <div
+              className={`text-lg font-bold ${
                 status.includes("Matched") ? "text-green-500" : "text-red-500"
-              }`}>
-                {status}
-              </div>
-            )}
+              }`}
+            >
+              {status}
+            </div>
+          )}
           <div className="text-text font-mono min-w-[40px] text-center">
             {currentIndex}
           </div>
