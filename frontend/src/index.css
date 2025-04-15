@@ -16,8 +16,10 @@
   --color-title: #0f172a;
   --color-text: #334155;
   --color-text-secondary: #64748b;
+  --color-text-selected: #00ff00;
 
   --color-state: #93c5fd;
+  --color-state-starting: #3b82f6;
   --color-state-terminating: #fca5a5;
   --color-state-active: #7dd3fc;
   --color-transition: #64748b;
@@ -38,8 +40,10 @@
   --color-title: #f8fafc;
   --color-text: #e2e8f0;
   --color-text-secondary: #94a3b8;
+  --color-text-selected: #00ff00;
 
   --color-state: #1d4ed8;
+  --color-state-starting: #fcfc02;
   --color-state-terminating: #b91c1c;
   --color-state-active: #0284c7;
   --color-transition: #94a3b8;

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useFSMContext } from "../../context/FSMContext";
 import { State } from "../../types/FSM";
+import FSMTextDisplay from "./FSMTextDisplay";
+import { Download } from "@mui/icons-material";
 
 const STATE_RADIUS = 30;
 
@@ -44,6 +46,7 @@ const FSMVisualizer = () => {
 
     const styles = getComputedStyle(canvas);
     const stateColor = styles.getPropertyValue("--color-state") || "#000";
+    const startingColor = styles.getPropertyValue("--color-state-starting") || "#3b82f6";
     const terminatingColor = styles.getPropertyValue("--color-state-terminating") || "#10b981";
     const transitionColor = styles.getPropertyValue("--color-transition") || "#333";
     const textColor = styles.getPropertyValue("--color-text") || "#000";
@@ -94,7 +97,8 @@ const FSMVisualizer = () => {
       // Symbols
       ctx.fillStyle = textColor;
       ctx.font = "14px sans-serif";
-      ctx.fillText(symbols.join(", "), (startX + endX) / 2 + 5, (startY + endY) / 2 - 5);
+      const formattedSymbols = symbols.map(sym => sym === "epsilon" ? "ε" : sym).join(", ");
+      ctx.fillText(formattedSymbols, (startX + endX) / 2 + 5, (startY + endY) / 2 - 5);
     });
 
     // Draw states
@@ -105,7 +109,11 @@ const FSMVisualizer = () => {
       // Circle
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, STATE_RADIUS, 0, 2 * Math.PI);
-      ctx.strokeStyle = state.isTerminating ? terminatingColor : stateColor;
+      ctx.strokeStyle = state.id === fsm.startingState
+        ? startingColor
+        : state.isTerminating
+          ? terminatingColor
+          : stateColor;
       ctx.lineWidth = 2;
       ctx.stroke();
       if (state.isTerminating) {
@@ -157,23 +165,45 @@ const FSMVisualizer = () => {
     setDraggingState(null);
   };
 
+  const handleExportPNG = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataURL = canvas.toDataURL("image/png");
+  
+    const link = document.createElement("a");
+    link.download = `${fsm?.type || "fsm"}.png`;
+    link.href = dataURL;
+    link.click();
+  };
+  
+
   if (!fsm) return <div className="text-center text-red-500 mt-10">FSM not found</div>;
 
   return (
     <div className="min-h-screen bg-primary pt-10">
-        <div className="flex justify-center">
-            <canvas
-                ref={canvasRef}
-                width={1000}
-                height={600}
-                className="border border-card-border bg-card rounded"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-            />
+      <div className="flex justify-center gap-4">
+        <div className="relative">
+          <button
+            className="absolute top-2 right-2 p-1 hover:bg-muted rounded"
+            onClick={handleExportPNG}
+            title="Export as PNG"
+          >
+            <Download className="text-btn hover:text-btn-hover" />
+          </button>
+          <canvas
+            ref={canvasRef}
+            width={1000}
+            height={600}
+            className="border border-card-border bg-card rounded"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          />
         </div>
+
+        <FSMTextDisplay fsm={fsm} selectedState={draggingState} />
+      </div>
     </div>
-        
   );
 };
 

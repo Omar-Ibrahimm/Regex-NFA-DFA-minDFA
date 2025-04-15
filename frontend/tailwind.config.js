@@ -17,12 +17,7 @@ export default {
         title: "var(--color-title)",
         text: "var(--color-text)",
         "text-secondary": "var(--color-text-secondary)",
-
-        state: "var(--color-state)",
-        "state-terminating": "var(--color-state-terminating)",
-        "state-active": "var(--color-state-active)",
-        transition: "var(--color-transition)",
-        "transition-active": "var(--color-transition-active)",
+        "text-selected": "var(--color-text-selected)",
       },
     },
   },
