@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useFSMContext } from "../../context/FSMContext";
 import { State } from "../../types/FSM";
 import FSMTextDisplay from "./FSMTextDisplay";
-import { Download } from "@mui/icons-material";
+import { Download, PlayArrow, Replay, CheckCircle, Cancel, Speed } from "@mui/icons-material";
 
 const STATE_RADIUS = 30;
 
@@ -320,11 +320,29 @@ const FSMVisualizer = () => {
     setStatus(null);
   };
 
+  const handleStartSimulation = () => {
+    if (!fsm?.startingState || inputText.length === 0) return;
+    setStatus(null);
+    if (!currentSimState) {
+      setCurrentSimState(fsm?.startingState);
+      setCurrentIndex(0);
+    }
+    setIsSimulating(true);
+  };
+
+  const getStatusIcon = () => {
+    if (!status) return null;
+    if (status.includes("Matched")) {
+      return <CheckCircle className="text-green-500 mr-1" />;
+    }
+    return <Cancel className="text-red-500 mr-1" />;
+  };
+
   if (!fsm)
     return <div className="text-center text-red-500 mt-10">FSM not found</div>;
 
   return (
-    <div className="min-h-screen bg-primary pt-10">
+    <div className="min-h-screen bg-primary py-10">
       <div className="flex justify-center gap-4">
         <div className="relative">
           <button
@@ -338,7 +356,7 @@ const FSMVisualizer = () => {
             ref={canvasRef}
             width={1000}
             height={600}
-            className="border border-card-border bg-card rounded"
+            className="border border-card-border bg-card rounded shadow-lg"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -347,59 +365,94 @@ const FSMVisualizer = () => {
 
         <FSMTextDisplay fsm={fsm} selectedState={draggingState} />
       </div>
+      
       {fsm.type === "MIN_DFA" && (
-        <div className="flex items-center justify-center gap-4 mb-6 mt-5">
-          <input
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Enter input text to simulate"
-            className="p-2 rounded bg-card border border-card-border text-text"
-          />
-          <div className="flex items-center gap-2">
-            <label className="text-text">Delay:</label>
-            <input
-              type="range"
-              min="100"
-              max="3000"
-              step="100"
-              value={simulationDelay}
-              onChange={(e) => setSimulationDelay(Number(e.target.value))}
-              className="w-32"
-            />
-            <span className="text-text w-20">{simulationDelay}ms</span>
-          </div>
-          {status && (
-            <div
-              className={`text-lg font-bold ${
-                status.includes("Matched") ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              {status}
+        <div className="max-w-4xl mx-auto bg-card rounded-lg shadow-md p-6 mt-6">
+          <h3 className="text-xl font-semibold mb-4 text-text">Text Match Simulation</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Input Section */}
+            <div className="md:col-span-2">
+              <label htmlFor="fsm-input" className="block text-sm font-medium text-text mb-2">
+                Input String:
+              </label>
+              <input
+                id="fsm-input"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder="Enter input text to simulate"
+                className="w-full p-3 rounded-md bg-primary border border-card-border text-text focus:outline-none focus:ring-2 focus:ring-btn"
+              />
             </div>
-          )}
-          <div className="text-text font-mono min-w-[40px] text-center">
-            {currentIndex}
+            
+            {/* Simulation Speed */}
+            <div>
+              <label className="block text-sm font-medium text-text mb-2">
+                <div className="flex items-center">
+                  <Speed className="mr-1" fontSize="small" />
+                  Simulation Speed:
+                </div>
+              </label>
+              <div className="flex items-center">
+                <span className="text-text text-sm mr-2">Fast</span>
+                <input
+                  type="range"
+                  min="100"
+                  max="3000"
+                  step="100"
+                  value={simulationDelay}
+                  onChange={(e) => setSimulationDelay(Number(e.target.value))}
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                />
+                <span className="text-text text-sm ml-2">Slow</span>
+              </div>
+              <div className="text-right text-text text-sm mt-1">{simulationDelay}ms</div>
+            </div>
           </div>
-          <button
-            onClick={() => {
-              if (!fsm.startingState || inputText.length === 0) return;
-              setStatus(null);
-              if (!currentSimState) {
-                setCurrentSimState(fsm.startingState);
-                setCurrentIndex(0);
-              }
-              setIsSimulating(true);
-            }}
-            className="bg-btn text-text px-2 py-1 rounded hover:bg-btn-hover"
-          >
-            ▶️ Play All
-          </button>
-          <button
-            onClick={handleReset}
-            className="bg-btn text-text px-2 py-1 rounded hover:bg-btn-hover"
-          >
-            🔄 Reset
-          </button>
+          
+          {/* Status and Controls */}
+          <div className="flex flex-wrap items-center justify-between mt-6">
+            <div className="flex items-center space-x-4">
+              {status && (
+                <div className={`flex items-center px-4 py-2 rounded-full ${
+                  status.includes("Matched") 
+                    ? "bg-green-100 text-green-800" 
+                    : "bg-red-100 text-red-800"
+                }`}>
+                  {getStatusIcon()}
+                  <span className="font-medium">{status}</span>
+                </div>
+              )}
+              
+              <div className="bg-muted rounded-md px-3 py-1">
+                <span className="text-text text-sm mr-2">Position:</span>
+                <span className="text-text font-mono font-bold">{currentIndex}</span>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3 mt-4 sm:mt-0">
+              <button
+                onClick={handleStartSimulation}
+                disabled={isSimulating || !inputText}
+                className={`flex items-center px-4 py-2 rounded-md ${
+                  isSimulating || !inputText
+                    ? "bg-muted text-text opacity-50 cursor-not-allowed"
+                    : "bg-btn text-text hover:bg-btn-hover"
+                }`}
+              >
+                <PlayArrow className="mr-1" />
+                Start Simulation
+              </button>
+              
+              <button
+                onClick={handleReset}
+                className="flex items-center px-4 py-2 bg-muted text-text rounded-md hover:bg-card-border"
+              >
+                <Replay className="mr-1" />
+                Reset
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

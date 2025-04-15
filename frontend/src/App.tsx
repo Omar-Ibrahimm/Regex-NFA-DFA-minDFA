@@ -7,8 +7,8 @@ import FSMVisualizer from "./pages/FSMVisualizer/FSMVisualizer";
 const App = () => {
   return (
     <FSMProvider>
-      <Navbar />
       <Router>
+      <Navbar />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/fsm/:fsmType" element={<FSMVisualizer />} />

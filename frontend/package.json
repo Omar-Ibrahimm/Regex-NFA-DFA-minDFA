@@ -11,8 +11,9 @@
   },
   "dependencies": {
     "@mui/icons-material": "^7.0.0",
-    "@mui/material": "^7.0.0",
+    "@mui/material": "^7.0.2",
     "axios": "^1.8.4",
+    "framer-motion": "^12.7.3",
     "prettier": "^3.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
