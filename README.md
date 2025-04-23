@@ -14,74 +14,28 @@ This project implements a complete pipeline for converting regular expressions i
 ## ✨ Features
 
 - **🔣 Complete Regex Support**: Handles concatenation, alternation (|), Kleene star (*), plus (+), optional (?), and character classes
-- **🖼️ Visualization**: Outputs automata as JSON for easy visualization
 - **⚡ State Optimization**: Produces minimal DFAs with the fewest possible states
-- **💻 Command-line Interface**: Simple command-line tool for processing regex patterns
-
-## 📥 Installation
-
-1. Clone this repository:
-```bash
-git clone https://github.com/yourusername/Regex-NFA-DFA-minDFA.git
-cd Regex-NFA-DFA-minDFA
-```
-
-2. Make sure you have Python 3.6+ installed
-
-## 🚀 Usage
-
-### 🧪 Running in Batch Mode (Backend)
-
-You can run the backend directly by executing the main script with your regex pattern:
-
-```bash
-python backend/src/main.py "your_regex_pattern" [output_directory]
-```
-
-Examples:
-```bash
-python backend/src/main.py "(a|b)*abb"
-python backend/src/main.py "[a-z]+(0|1)*" output_folder
-```
-
-This will generate three JSON files:
-- `nfa.json`: Non-deterministic Finite Automaton
-- `dfa.json`: Deterministic Finite Automaton
-- `min_dfa.json`: Minimized Deterministic Finite Automaton
-
-### 🌐 Running via Frontend
-
-If a frontend is available, you can use it to interact with the tool through a graphical interface or a web-based interface. To run the frontend:
-
-1. Execute the flask backend server:
-```bash
-cd backend/src
-pip install flask flask-cors
-python app.py
-```
-
-2. Then in another terminal, run the react app
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-3. Open your browser and navigate to the provided URL (e.g., `http://localhost:5173`).
-
-The frontend will allow you to input regex patterns, visualize the automata, and download the generated JSON files.
+- **💻 Interfacing**: Has two interface options, Web GUI and simple batch CLI mode
+- **🔍 Simulation**: Test your regex against input strings to verify matching
+- **📊 Visualization**: View your automata as interactive diagrams
+- **💾 Export**: Download JSON files and PNG images of your automata
 
 ## 📁 Project Structure
 
-- `AST.py`: Abstract Syntax Tree node classes
-- `Lexer.py`: Tokenizes regex input
-- `Parser.py`: Parses tokens into an AST
-- `NFA.py`: NFA representation and operations
-- `NFABuilder.py`: Converts AST to NFA
-- `DFA.py`: DFA representation and operations
-- `NFAtoDFA.py`: Converts NFA to DFA
-- `DFAMinimizer.py`: Minimizes a DFA
-- `main.py`: Command-line interface
+### Backend
+- AST.py: Abstract Syntax Tree node classes
+- Lexer.py: Tokenizes regex input
+- Parser.py: Parses tokens into an AST
+- NFA.py: NFA representation and operations
+- NFABuilder.py: Converts AST to NFA
+- DFA.py: DFA representation and operations
+- NFAtoDFA.py: Converts NFA to DFA
+- DFAMinimizer.py: Minimizes a DFA
+- main.py: Command-line interface
+- app.py: Flask server for web interface
+
+### Frontend
+- frontend: React web application for interactive use
 
 ## ⚙️ How It Works
 
@@ -135,7 +89,78 @@ The output is structured JSON describing the automata:
 - flask-cors
 
 ### Frontend Dependencies
-- npm
+- Node.js v18.7+
+- npm or yarn
+- React
+- Vite (development server)
+- D3.js (for visualizations)
+- Axios (for API calls)
+
+## 📥 Installation and Setup
+
+1. Clone this repository:
+```bash
+git clone https://github.com/yourusername/Regex-NFA-DFA-minDFA.git
+cd Regex-NFA-DFA-minDFA
+```
+
+2. Install backend dependencies:
+```bash
+cd backend
+pip install flask flask-cors
+```
+
+3. Install frontend dependencies:
+```bash
+cd frontend
+npm install
+```
+
+## 🚀 Usage
+
+### 🧪 Running via Batch Mode
+
+You can run the backend directly by executing the main script with your regex pattern:
+
+```bash
+cd ./backend/src/
+python ./main.py "your_regex_pattern" [output_directory]
+```
+
+Examples:
+```bash
+python ./main.py "(a|b)*abb"
+python ./main.py "[a-z]+(0|1)*" output_folder
+```
+
+This will generate three JSON files:
+- `nfa.json`: Non-deterministic Finite Automaton
+- `dfa.json`: Deterministic Finite Automaton
+- `min_dfa.json`: Minimized Deterministic Finite Automaton
+
+### 🌐 Running via Frontend
+
+1. Execute the Flask backend server:
+```bash
+cd ./backend/src
+pip install flask flask-cors
+python app.py
+```
+
+2. Then in another terminal, run the React app:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+3. Open your browser and navigate to the provided URL (e.g., `http://localhost:5173`).
+
+The frontend will allow you to:
+- Input regex patterns
+- Visualize the automata (NFA, DFA, Minimized DFA)
+- Simulate against input strings
+- Download the generated JSON files and PNG images
 
 ## 📄 License
 
@@ -145,6 +170,7 @@ MIT License
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
----
+## 👨‍💻 Authors
 
-Created by [Omar Ibrahim] - March 2025
+- [Omar Ibrahim](https://github.com/Omar-Ibrahimm)
+- [Mohamed Sobh](https://github.com/MohamedSobh032)
