@@ -25,7 +25,11 @@ const RegexInput = () => {
       setFSMs(parsedResults);
       setTriggerFetch(false); // reset fetch trigger
     }
-  }, [data, setFSMs]);
+    if (error) {
+      console.error("Error fetching data:", error);
+      setTriggerFetch(false); // reset fetch trigger
+    }
+  }, [data, error, setFSMs]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -46,20 +50,19 @@ const RegexInput = () => {
           onChange={(e) => setRegex(e.target.value)}
           placeholder="Enter regular expression"
           className={`p-3 rounded-lg border-2 bg-input border-input-border text-title 
-                        focus:outline-none focus:border-btn ${error ? "border-red-500" : ""}`}
+                      focus:outline-none focus:border-btn ${error ? "border-red-500" : ""}`}
           disabled={loading}
         />
         {error && (
           <p className="text-red-500 text-sm">
-            Error:{" "}
-            {error.response?.data?.error || "Failed to generate automata"}
+            Error: The regular expression is invalid. Please check your input.
           </p>
         )}
       </div>
 
       <button
         type="submit"
-        disabled={loading || (regex.length === 0 && !data)}
+        disabled={loading || regex.length === 0}
         className="p-3 rounded-lg bg-btn hover:bg-btn-hover font-semibold transition-colors text-text disabled:cursor-not-allowed"
       >
         {loading ? "Generating Automata..." : "Generate Automata"}
