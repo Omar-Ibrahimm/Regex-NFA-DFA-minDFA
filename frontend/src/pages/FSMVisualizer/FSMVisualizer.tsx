@@ -338,8 +338,39 @@ const FSMVisualizer = () => {
     return <Cancel className="text-red-500 mr-1" />;
   };
 
-  if (!fsm)
-    return <div className="text-center text-red-500 mt-10">FSM not found</div>;
+  if (!fsm) {
+    return (
+      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-4">
+        <svg
+          className="w-32 h-32 text-gray-400 mb-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          ></path>
+        </svg>
+        <h1 className="text-5xl font-extrabold text-gray-400 mb-4 tracking-wider">
+          Oops! FSM Not Found.
+        </h1>
+        <p className="text-xl text-gray-400 text-center mb-6 max-w-md">
+          Looks like your Finite State Machine (FSM) hasn't been generated yet. 
+          It's probably lost in the void—let's get you back to safety!
+        </p>
+        <a
+          href="/"
+          className="px-6 py-3 bg-btn hover:bg-btn-hover text-text rounded-lg transition text-lg font-semibold"
+        >
+          Back to Homepage
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-primary py-10">
