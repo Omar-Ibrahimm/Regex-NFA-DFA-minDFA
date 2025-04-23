@@ -1,534 +1,680 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useFSMContext } from "../../context/FSMContext";
-import { State } from "../../types/FSM";
-import FSMTextDisplay from "./FSMTextDisplay";
-import {
-  Download,
-  PlayArrow,
-  Replay,
-  CheckCircle,
-  Cancel,
-  Speed,
-} from "@mui/icons-material";
+"use client"
 
-const STATE_RADIUS = 30;
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 600;
-const PADDING = 50;
+import type React from "react"
+
+import { useEffect, useRef, useState } from "react"
+import { useParams } from "react-router-dom"
+import { useFSMContext } from "../../context/FSMContext"
+import type { State } from "../../types/FSM"
+import FSMTextDisplay from "./FSMTextDisplay"
+import { Download, PlayArrow, Replay, CheckCircle, Cancel, Speed } from "@mui/icons-material"
+
+// Add these constants for animation
+const STATE_RADIUS = 30
+const CANVAS_WIDTH = 1000
+const CANVAS_HEIGHT = 600
+const PADDING = 50
+const ANIMATION_DURATION = 500 // ms
 
 const FSMVisualizer = () => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const { fsmType } = useParams<{ fsmType: string }>();
-  const { FSMs } = useFSMContext();
-  const fsm = FSMs.find((f) => f.type === fsmType?.toUpperCase());
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const animationRef = useRef<number | null>(null)
+  const { fsmType } = useParams<{ fsmType: string }>()
+  const { FSMs } = useFSMContext()
+  const fsm = FSMs.find((f) => f.type === fsmType?.toUpperCase())
 
-  const [positions, setPositions] = useState<
-    Record<string, { x: number; y: number }>
-  >({});
+  const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({})
 
-  const [draggingState, setDraggingState] = useState<string | null>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [draggingState, setDraggingState] = useState<string | null>(null)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
 
-  const [inputText, setInputText] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentSimState, setCurrentSimState] = useState<string | null>(null);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
-  const [simulationDelay, setSimulationDelay] = useState(1000);
+  const [inputText, setInputText] = useState("")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [currentSimState, setCurrentSimState] = useState<string | null>(null)
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
+  const [simulationDelay, setSimulationDelay] = useState(1000)
+
+  // Add animation state
+  const [animationProgress, setAnimationProgress] = useState(0)
+  const [animationFrom, setAnimationFrom] = useState<string | null>(null)
+  const [animationTo, setAnimationTo] = useState<string | null>(null)
+  const [animationStartTime, setAnimationStartTime] = useState<number | null>(null)
 
   useEffect(() => {
     if (fsm) {
-      const adjacency: Record<string, Set<string>> = {};
+      const adjacency: Record<string, Set<string>> = {}
       fsm.states.forEach((s: State) => {
-        adjacency[s.id] = new Set();
-      });
+        adjacency[s.id] = new Set()
+      })
       fsm.transitions.forEach((t) => {
         if (t.from !== t.to) {
-          adjacency[t.from].add(t.to);
+          adjacency[t.from].add(t.to)
         }
-      });
+      })
 
-      const layers: string[][] = [];
-      const visited: Set<string> = new Set();
-      const queue: string[] = [fsm.startingState];
-      visited.add(fsm.startingState);
+      const layers: string[][] = []
+      const visited: Set<string> = new Set()
+      const queue: string[] = [fsm.startingState]
+      visited.add(fsm.startingState)
 
       while (queue.length > 0) {
-        const layerSize = queue.length;
-        const currentLayer: string[] = [];
+        const layerSize = queue.length
+        const currentLayer: string[] = []
 
         for (let i = 0; i < layerSize; i++) {
-          const state = queue.shift()!;
-          currentLayer.push(state);
+          const state = queue.shift()!
+          currentLayer.push(state)
 
           adjacency[state].forEach((neighbor) => {
             if (!visited.has(neighbor)) {
-              visited.add(neighbor);
-              queue.push(neighbor);
+              visited.add(neighbor)
+              queue.push(neighbor)
             }
-          });
+          })
         }
 
-        layers.push(currentLayer);
+        layers.push(currentLayer)
       }
 
       fsm.states.forEach((s: State) => {
         if (!visited.has(s.id)) {
-          layers.push([s.id]);
+          layers.push([s.id])
         }
-      });
+      })
 
-      const init: Record<string, { x: number; y: number }> = {};
-      const layerWidth = 200;
-      const stateSpacing = 150;
+      const init: Record<string, { x: number; y: number }> = {}
+      const layerWidth = 200
+      const stateSpacing = 150
 
-      let currentX = PADDING + STATE_RADIUS;
-      let currentY = CANVAS_HEIGHT / 2;
-      let direction = "right";
-      const occupiedPositions: Set<string> = new Set();
+      let currentX = PADDING + STATE_RADIUS
+      let currentY = CANVAS_HEIGHT / 2
+      let direction = "right"
+      const occupiedPositions: Set<string> = new Set()
 
       layers.forEach((layer) => {
-        const layerHeight = (layer.length - 1) * stateSpacing;
-        let startY = currentY - layerHeight / 2;
+        const layerHeight = (layer.length - 1) * stateSpacing
+        const startY = currentY - layerHeight / 2
 
-        const layerPositions: { state: string; x: number; y: number }[] = [];
+        const layerPositions: { state: string; x: number; y: number }[] = []
         layer.forEach((state, stateIndex) => {
-          let y = startY + stateIndex * stateSpacing;
-          let x = currentX;
+          let y = startY + stateIndex * stateSpacing
+          let x = currentX
 
-          let attempts = 0;
-          const maxAttempts = 4;
+          let attempts = 0
+          const maxAttempts = 4
           while (attempts < maxAttempts) {
-            if (
-              x + STATE_RADIUS > CANVAS_WIDTH - PADDING &&
-              direction === "right"
-            ) {
-              direction = "down";
-              currentX = x;
-              currentY = y + stateSpacing;
-              y = currentY;
-              x = currentX;
-            } else if (
-              y + STATE_RADIUS > CANVAS_HEIGHT - PADDING &&
-              direction === "down"
-            ) {
-              direction = "left";
-              currentY = y;
-              currentX = x - layerWidth;
-              x = currentX;
-              y = currentY;
+            if (x + STATE_RADIUS > CANVAS_WIDTH - PADDING && direction === "right") {
+              direction = "down"
+              currentX = x
+              currentY = y + stateSpacing
+              y = currentY
+              x = currentX
+            } else if (y + STATE_RADIUS > CANVAS_HEIGHT - PADDING && direction === "down") {
+              direction = "left"
+              currentY = y
+              currentX = x - layerWidth
+              x = currentX
+              y = currentY
             } else if (x - STATE_RADIUS < PADDING && direction === "left") {
-              direction = "up";
-              currentX = x;
-              currentY = y - stateSpacing;
-              y = currentY;
-              x = currentX;
+              direction = "up"
+              currentX = x
+              currentY = y - stateSpacing
+              y = currentY
+              x = currentX
             } else if (y - STATE_RADIUS < PADDING && direction === "up") {
-              direction = "right";
-              currentY = y;
-              currentX = x + layerWidth;
-              x = currentX;
-              y = currentY;
+              direction = "right"
+              currentY = y
+              currentX = x + layerWidth
+              x = currentX
+              y = currentY
             }
 
-            const posKey = `${Math.round(x)},${Math.round(y)}`;
+            const posKey = `${Math.round(x)},${Math.round(y)}`
             if (!occupiedPositions.has(posKey)) {
-              occupiedPositions.add(posKey);
-              break;
+              occupiedPositions.add(posKey)
+              break
             }
 
             if (direction === "right") {
-              x += layerWidth;
+              x += layerWidth
             } else if (direction === "down") {
-              y += stateSpacing;
+              y += stateSpacing
             } else if (direction === "left") {
-              x -= layerWidth;
+              x -= layerWidth
             } else if (direction === "up") {
-              y -= stateSpacing;
+              y -= stateSpacing
             }
 
-            attempts++;
+            attempts++
           }
 
-          x = Math.max(PADDING + STATE_RADIUS, Math.min(CANVAS_WIDTH - PADDING - STATE_RADIUS, x));
-          y = Math.max(PADDING + STATE_RADIUS, Math.min(CANVAS_HEIGHT - PADDING - STATE_RADIUS, y));
+          x = Math.max(PADDING + STATE_RADIUS, Math.min(CANVAS_WIDTH - PADDING - STATE_RADIUS, x))
+          y = Math.max(PADDING + STATE_RADIUS, Math.min(CANVAS_HEIGHT - PADDING - STATE_RADIUS, y))
 
-          layerPositions.push({ state, x, y });
-        });
+          layerPositions.push({ state, x, y })
+        })
 
-        const lastPos = layerPositions[layerPositions.length - 1];
-        currentX = lastPos.x;
-        currentY = lastPos.y;
+        const lastPos = layerPositions[layerPositions.length - 1]
+        currentX = lastPos.x
+        currentY = lastPos.y
 
         if (direction === "right") {
-          currentX += layerWidth;
+          currentX += layerWidth
         } else if (direction === "down") {
-          currentY += stateSpacing;
+          currentY += stateSpacing
         } else if (direction === "left") {
-          currentX -= layerWidth;
+          currentX -= layerWidth
         } else if (direction === "up") {
-          currentY -= stateSpacing;
+          currentY -= stateSpacing
         }
 
         layerPositions.forEach(({ state, x, y }) => {
-          init[state] = { x, y };
-        });
-      });
+          init[state] = { x, y }
+        })
+      })
 
-      setPositions(init);
+      setPositions(init)
     }
-  }, [fsm]);
+  }, [fsm])
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !fsm) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvas = canvasRef.current
+    if (!canvas || !fsm) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
-    const styles = getComputedStyle(canvas);
-    const stateColor = styles.getPropertyValue("--color-state") || "#000";
-    const startingColor =
-      styles.getPropertyValue("--color-state-starting") || "#3b82f6";
-    const terminatingColor =
-      styles.getPropertyValue("--color-state-terminating") || "#10b981";
-    const transitionColor =
-      styles.getPropertyValue("--color-transition") || "#333";
-    const textColor = styles.getPropertyValue("--color-text") || "#000";
+    const styles = getComputedStyle(canvas)
+    const stateColor = styles.getPropertyValue("--color-state") || "#000"
+    const startingColor = styles.getPropertyValue("--color-state-starting") || "#3b82f6"
+    const terminatingColor = styles.getPropertyValue("--color-state-terminating") || "#10b981"
+    const transitionColor = styles.getPropertyValue("--color-transition") || "#333"
+    const textColor = styles.getPropertyValue("--color-text") || "#000"
+    const selectedColor = "brown"
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
     // Step 1: Group transitions by from-to pair and track bidirectional pairs
-    const transitionMap: Record<string, { symbols: string[]; index: number; reverseIndex: number }> = {};
-    const bidirectionalPairs: Set<string> = new Set();
+    const transitionMap: Record<string, { symbols: string[]; index: number; reverseIndex: number }> = {}
+    const bidirectionalPairs: Set<string> = new Set()
 
     // First pass: Identify bidirectional pairs and count transitions
     for (const t of fsm.transitions) {
-      const key = `${t.from}->${t.to}`;
+      const key = `${t.from}->${t.to}`
 
       if (!transitionMap[key]) {
-        transitionMap[key] = { symbols: [], index: 0, reverseIndex: 0 };
+        transitionMap[key] = { symbols: [], index: 0, reverseIndex: 0 }
       }
-      transitionMap[key].symbols.push(t.symbol);
+      transitionMap[key].symbols.push(t.symbol)
 
       if (t.from !== t.to && fsm.transitions.some((rt) => rt.from === t.to && rt.to === t.from)) {
-        const pair = [t.from, t.to].sort().join("->");
-        bidirectionalPairs.add(pair);
+        const pair = [t.from, t.to].sort().join("->")
+        bidirectionalPairs.add(pair)
       }
     }
 
     // Second pass: Assign indices for forward and reverse transitions
     Object.keys(transitionMap).forEach((key) => {
-      const [from, to] = key.split("->");
-      const pair = [from, to].sort().join("->");
-      const reverseKey = `${to}->${from}`;
+      const [from, to] = key.split("->")
+      const pair = [from, to].sort().join("->")
+      const reverseKey = `${to}->${from}`
 
       if (bidirectionalPairs.has(pair)) {
         if (from < to) {
           // Forward direction (e.g., S0 -> S1)
-          const forwardCount = transitionMap[key].symbols.length;
-          const reverseCount = transitionMap[reverseKey] ? transitionMap[reverseKey].symbols.length : 0;
-          transitionMap[key].index = 0; // Base index for forward
-          transitionMap[key].reverseIndex = reverseCount; // Number of reverse transitions
+          const forwardCount = transitionMap[key].symbols.length
+          const reverseCount = transitionMap[reverseKey] ? transitionMap[reverseKey].symbols.length : 0
+          transitionMap[key].index = 0 // Base index for forward
+          transitionMap[key].reverseIndex = reverseCount // Number of reverse transitions
           if (transitionMap[reverseKey]) {
-            transitionMap[reverseKey].index = 1; // Base index for reverse
-            transitionMap[reverseKey].reverseIndex = forwardCount; // Number of forward transitions
+            transitionMap[reverseKey].index = 1 // Base index for reverse
+            transitionMap[reverseKey].reverseIndex = forwardCount // Number of forward transitions
           }
         } else {
           // Reverse direction (e.g., S1 -> S0)
-          const forwardCount = transitionMap[reverseKey] ? transitionMap[reverseKey].symbols.length : 0;
-          const reverseCount = transitionMap[key].symbols.length;
-          transitionMap[key].index = 1; // Base index for reverse
-          transitionMap[key].reverseIndex = forwardCount; // Number of forward transitions
+          const forwardCount = transitionMap[reverseKey] ? transitionMap[reverseKey].symbols.length : 0
+          const reverseCount = transitionMap[key].symbols.length
+          transitionMap[key].index = 1 // Base index for reverse
+          transitionMap[key].reverseIndex = forwardCount // Number of forward transitions
           if (transitionMap[reverseKey]) {
-            transitionMap[reverseKey].index = 0; // Base index for forward
-            transitionMap[reverseKey].reverseIndex = reverseCount; // Number of reverse transitions
+            transitionMap[reverseKey].index = 0 // Base index for forward
+            transitionMap[reverseKey].reverseIndex = reverseCount // Number of reverse transitions
           }
         }
       } else {
         // For non-bidirectional transitions, use index to alternate curves
-        transitionMap[key].index = transitionMap[key].symbols.length - 1; // Increment index for each symbol
+        transitionMap[key].index = transitionMap[key].symbols.length - 1 // Increment index for each symbol
       }
-    });
+    })
 
     // Step 2: Draw transitions with dynamic curvature
     Object.entries(transitionMap).forEach(([key, { symbols, index, reverseIndex }]) => {
-      const [from, to] = key.split("->");
-      const fromPos = positions[from];
-      const toPos = positions[to];
-      if (!fromPos || !toPos) return;
+      const [from, to] = key.split("->")
+      const fromPos = positions[from]
+      const toPos = positions[to]
+      if (!fromPos || !toPos) return
+
+      // Check if this transition is currently being animated
+      const isAnimating = animationFrom === from && animationTo === to && animationProgress > 0 && animationProgress < 1
 
       if (from === to) {
-        const loopRadius = STATE_RADIUS * 4;
-        const startAngle = Math.PI / 4;
-        const endAngle = (3 * Math.PI) / 4;
+        const loopRadius = STATE_RADIUS * 4
+        const startAngle = Math.PI / 4
+        const endAngle = (3 * Math.PI) / 4
 
         const start = {
           x: fromPos.x + STATE_RADIUS * Math.cos(startAngle),
           y: fromPos.y + STATE_RADIUS * Math.sin(startAngle),
-        };
+        }
 
         const end = {
           x: fromPos.x + STATE_RADIUS * Math.cos(endAngle),
           y: fromPos.y + STATE_RADIUS * Math.sin(endAngle),
-        };
+        }
 
         const cp1 = {
           x: fromPos.x + loopRadius * Math.cos(startAngle),
           y: fromPos.y + loopRadius * Math.sin(startAngle),
-        };
+        }
 
         const cp2 = {
           x: fromPos.x + loopRadius * Math.cos(endAngle),
           y: fromPos.y + loopRadius * Math.sin(endAngle),
-        };
+        }
 
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y);
-        ctx.strokeStyle = transitionColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath()
+        ctx.moveTo(start.x, start.y)
+        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, end.x, end.y)
+        ctx.strokeStyle = isAnimating ? selectedColor : transitionColor
+        ctx.lineWidth = isAnimating ? 3 : 2
+        ctx.stroke()
 
-        const arrowAngle = Math.atan2(end.y - cp2.y, end.x - cp2.x);
-        ctx.beginPath();
-        ctx.moveTo(end.x, end.y);
-        ctx.lineTo(
-          end.x - 10 * Math.cos(arrowAngle - Math.PI / 6),
-          end.y - 10 * Math.sin(arrowAngle - Math.PI / 6),
-        );
-        ctx.lineTo(
-          end.x - 10 * Math.cos(arrowAngle + Math.PI / 6),
-          end.y - 10 * Math.sin(arrowAngle + Math.PI / 6),
-        );
-        ctx.closePath();
-        ctx.fillStyle = textColor;
-        ctx.fill();
+        const arrowAngle = Math.atan2(end.y - cp2.y, end.x - cp2.x)
+        ctx.beginPath()
+        ctx.moveTo(end.x, end.y)
+        ctx.lineTo(end.x - 10 * Math.cos(arrowAngle - Math.PI / 6), end.y - 10 * Math.sin(arrowAngle - Math.PI / 6))
+        ctx.lineTo(end.x - 10 * Math.cos(arrowAngle + Math.PI / 6), end.y - 10 * Math.sin(arrowAngle + Math.PI / 6))
+        ctx.closePath()
+        ctx.fillStyle = isAnimating ? selectedColor : textColor
+        ctx.fill()
 
         const textPos = {
           x: fromPos.x + loopRadius * Math.cos(Math.PI / 2),
           y: fromPos.y + loopRadius * 0.7,
-        };
+        }
 
-        ctx.fillStyle = textColor;
-        ctx.font = "14px sans-serif";
-        const formattedSymbols = symbols
-          .map((sym) => (sym === "epsilon" ? "ε" : sym))
-          .join(", ");
-        ctx.fillText(formattedSymbols, textPos.x, textPos.y);
+        ctx.fillStyle = textColor
+        ctx.font = "14px sans-serif"
+        const formattedSymbols = symbols.map((sym) => (sym === "epsilon" ? "ε" : sym)).join(", ")
+        ctx.fillText(formattedSymbols, textPos.x, textPos.y)
+
+        // Draw animation particle for self-loop if animating
+        if (isAnimating) {
+          // Calculate position along the bezier curve based on animation progress
+          const t = animationProgress
+          const mt = 1 - t
+          const px = mt * mt * mt * start.x + 3 * mt * mt * t * cp1.x + 3 * mt * t * t * cp2.x + t * t * t * end.x
+          const py = mt * mt * mt * start.y + 3 * mt * mt * t * cp1.y + 3 * mt * t * t * cp2.y + t * t * t * end.y
+
+          // Create a glowing trail effect
+          const trailLength = 5
+          for (let i = 0; i < trailLength; i++) {
+            const trailT = Math.max(0, t - i * 0.05)
+            const trailMt = 1 - trailT
+            const trailX =
+              trailMt * trailMt * trailMt * start.x +
+              3 * trailMt * trailMt * trailT * cp1.x +
+              3 * trailMt * trailT * trailT * cp2.x +
+              trailT * trailT * trailT * end.x
+            const trailY =
+              trailMt * trailMt * trailMt * start.y +
+              3 * trailMt * trailMt * trailT * cp1.y +
+              3 * trailMt * trailT * trailT * cp2.y +
+              trailT * trailT * trailT * end.y
+
+            const alpha = 0.4 - i * 0.08
+            if (alpha > 0) {
+              ctx.beginPath()
+              ctx.arc(trailX, trailY, 4 - i * 0.5, 0, 2 * Math.PI)
+              ctx.fillStyle = `rgba(165, 42, 42, ${alpha})`
+              ctx.fill()
+            }
+          }
+
+          // Draw the moving particle with a glow effect
+          ctx.beginPath()
+          ctx.arc(px, py, 6, 0, 2 * Math.PI)
+          ctx.fillStyle = selectedColor
+          ctx.fill()
+
+          // Add outer glow
+          ctx.beginPath()
+          ctx.arc(px, py, 8, 0, 2 * Math.PI)
+          const glow = ctx.createRadialGradient(px, py, 3, px, py, 8)
+          glow.addColorStop(0, "rgba(165, 42, 42, 0.8)")
+          glow.addColorStop(1, "rgba(165, 42, 42, 0)")
+          ctx.fillStyle = glow
+          ctx.fill()
+        }
       } else {
-        const dx = toPos.x - fromPos.x;
-        const dy = toPos.y - fromPos.y;
-        const angle = Math.atan2(dy, dx);
+        const dx = toPos.x - fromPos.x
+        const dy = toPos.y - fromPos.y
+        const angle = Math.atan2(dy, dx)
 
-        const startX = fromPos.x + STATE_RADIUS * Math.cos(angle);
-        const startY = fromPos.y + STATE_RADIUS * Math.sin(angle);
-        const endX = toPos.x - STATE_RADIUS * Math.cos(angle);
-        const endY = toPos.y - STATE_RADIUS * Math.sin(angle);
+        const startX = fromPos.x + STATE_RADIUS * Math.cos(angle)
+        const startY = fromPos.y + STATE_RADIUS * Math.sin(angle)
+        const endX = toPos.x - STATE_RADIUS * Math.cos(angle)
+        const endY = toPos.y - STATE_RADIUS * Math.sin(angle)
 
         // Calculate the curve offset
-        const midX = (startX + endX) / 2;
-        const midY = (startY + endY) / 2;
-        const baseOffsetMagnitude = 40; // Base offset for the curve
-        const offsetIncrement = 20; // Additional offset per reverse transition
+        const midX = (startX + endX) / 2
+        const midY = (startY + endY) / 2
+        const baseOffsetMagnitude = 40 // Base offset for the curve
+        const offsetIncrement = 20 // Additional offset per reverse transition
 
         // Determine the direction of the curve (up or down)
-        const isBidirectional = bidirectionalPairs.has([from, to].sort().join("->"));
-        let offsetDirection: number;
-        let offsetMagnitude: number;
+        const isBidirectional = bidirectionalPairs.has([from, to].sort().join("->"))
+        let offsetDirection: number
+        let offsetMagnitude: number
 
         if (isBidirectional) {
           // For bidirectional transitions, use index to set base direction
           // and reverseIndex to adjust the magnitude
-          offsetDirection = index === 0 ? 1 : -1; // Forward: up (1), Reverse: down (-1)
+          offsetDirection = index === 0 ? 1 : -1 // Forward: up (1), Reverse: down (-1)
           // Increase the offset based on the number of transitions in the opposite direction
-          offsetMagnitude = offsetDirection * baseOffsetMagnitude + reverseIndex * offsetIncrement;
+          offsetMagnitude = offsetDirection * baseOffsetMagnitude + reverseIndex * offsetIncrement
         } else {
           // For non-bidirectional transitions, alternate the curve direction based on index
-          offsetDirection = index % 2 === 0 ? 1 : -1;
-          offsetMagnitude = baseOffsetMagnitude;
+          offsetDirection = index % 2 === 0 ? 1 : -1
+          offsetMagnitude = baseOffsetMagnitude
         }
 
-        const offset = offsetMagnitude * offsetDirection;
+        const offset = offsetMagnitude * offsetDirection
 
-        const controlX = midX + offset * Math.sin(angle);
-        const controlY = midY - offset * Math.cos(angle);
+        const controlX = midX + offset * Math.sin(angle)
+        const controlY = midY - offset * Math.cos(angle)
 
         // Draw quadratic Bézier curve
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.quadraticCurveTo(controlX, controlY, endX, endY);
-        ctx.strokeStyle = transitionColor;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath()
+        ctx.moveTo(startX, startY)
+        ctx.quadraticCurveTo(controlX, controlY, endX, endY)
+        ctx.strokeStyle = isAnimating ? selectedColor : transitionColor
+        ctx.lineWidth = isAnimating ? 3 : 2
+        ctx.stroke()
 
         // Arrowhead
-        const headlen = 10;
-        const arrowAngle = Math.atan2(endY - controlY, endX - controlX);
-        ctx.beginPath();
-        ctx.moveTo(endX, endY);
+        const headlen = 10
+        const arrowAngle = Math.atan2(endY - controlY, endX - controlX)
+        ctx.beginPath()
+        ctx.moveTo(endX, endY)
         ctx.lineTo(
           endX - headlen * Math.cos(arrowAngle - Math.PI / 6),
           endY - headlen * Math.sin(arrowAngle - Math.PI / 6),
-        );
+        )
         ctx.lineTo(
           endX - headlen * Math.cos(arrowAngle + Math.PI / 6),
           endY - headlen * Math.sin(arrowAngle + Math.PI / 6),
-        );
-        ctx.closePath();
-        ctx.fillStyle = textColor;
-        ctx.fill();
+        )
+        ctx.closePath()
+        ctx.fillStyle = isAnimating ? selectedColor : textColor
+        ctx.fill()
 
         // Symbols (positioned slightly offset from the curve)
-        ctx.fillStyle = textColor;
-        ctx.font = "14px sans-serif";
-        const formattedSymbols = symbols
-          .map((sym) => (sym === "epsilon" ? "ε" : sym))
-          .join(", ");
+        ctx.fillStyle = textColor
+        ctx.font = "14px sans-serif"
+        const formattedSymbols = symbols.map((sym) => (sym === "epsilon" ? "ε" : sym)).join(", ")
         // Use the computed offset to position the text, with an additional small adjustment
-        const textOffset = isBidirectional ? (offset + offsetDirection) : offset;
-        const textX = midX + textOffset * Math.sin(angle);
-        const textY = midY - textOffset * Math.cos(angle);
-        ctx.fillText(formattedSymbols, textX, textY);
+        const textOffset = isBidirectional ? offset + offsetDirection : offset
+        const textX = midX + textOffset * Math.sin(angle)
+        const textY = midY - textOffset * Math.cos(angle)
+        ctx.fillText(formattedSymbols, textX, textY)
+
+        // Draw animation particle if this transition is being animated
+        if (isAnimating) {
+          // Apply slight easing to the animation progress for more natural movement
+          const easedProgress = -Math.cos(animationProgress * Math.PI) / 2 + 0.5
+
+          // Calculate position along the quadratic bezier curve based on eased animation progress
+          const t = easedProgress
+          const mt = 1 - t
+          const px = mt * mt * startX + 2 * mt * t * controlX + t * t * endX
+          const py = mt * mt * startY + 2 * mt * t * controlY + t * t * endY
+
+          // Create a glowing trail effect
+          const trailLength = 5
+          for (let i = 0; i < trailLength; i++) {
+            const trailT = Math.max(0, t - i * 0.05)
+            const trailMt = 1 - trailT
+            const trailX = trailMt * trailMt * startX + 2 * trailMt * trailT * controlX + trailT * trailT * endX
+            const trailY = trailMt * trailMt * startY + 2 * trailMt * trailT * controlY + trailT * trailT * endY
+
+            const alpha = 0.4 - i * 0.08
+            if (alpha > 0) {
+              ctx.beginPath()
+              ctx.arc(trailX, trailY, 4 - i * 0.5, 0, 2 * Math.PI)
+              ctx.fillStyle = `rgba(165, 42, 42, ${alpha})`
+              ctx.fill()
+            }
+          }
+
+          // Draw the moving particle with a glow effect
+          ctx.beginPath()
+          ctx.arc(px, py, 6, 0, 2 * Math.PI)
+          ctx.fillStyle = selectedColor
+          ctx.fill()
+
+          // Add outer glow
+          ctx.beginPath()
+          ctx.arc(px, py, 8, 0, 2 * Math.PI)
+          const glow = ctx.createRadialGradient(px, py, 3, px, py, 8)
+          glow.addColorStop(0, "rgba(165, 42, 42, 0.8)")
+          glow.addColorStop(1, "rgba(165, 42, 42, 0)")
+          ctx.fillStyle = glow
+          ctx.fill()
+        }
       }
-    });
+    })
 
     // Draw states
     for (const state of fsm.states) {
-      const pos = positions[state.id];
-      if (!pos) continue;
+      const pos = positions[state.id]
+      if (!pos) continue
 
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, STATE_RADIUS, 0, 2 * Math.PI);
-      const isSimSelected =
-        currentSimState === state.id && fsm.type === "MIN_DFA";
+      const isSimSelected = currentSimState === state.id && fsm.type === "MIN_DFA"
+
+      // Draw pulse effect for selected state
+      if (isSimSelected) {
+        // Draw outer pulse glow with reduced opacity
+        const pulseSize = STATE_RADIUS + 5 + Math.sin(Date.now() / 200) * 3
+        ctx.beginPath()
+        ctx.arc(pos.x, pos.y, pulseSize, 0, 2 * Math.PI)
+        ctx.fillStyle = "rgba(165, 42, 42, 0.15)" // Reduced opacity
+        ctx.fill()
+
+        // Draw subtle shadow for 3D effect
+        ctx.beginPath()
+        ctx.arc(pos.x + 2, pos.y + 2, STATE_RADIUS, 0, 2 * Math.PI)
+        ctx.fillStyle = "rgba(0, 0, 0, 0.1)" // Reduced shadow opacity
+        ctx.fill()
+      }
+
+      // Draw main circle
+      ctx.beginPath()
+      ctx.arc(pos.x, pos.y, STATE_RADIUS, 0, 2 * Math.PI)
+
+      // Fill with more subtle gradient if selected
+      if (isSimSelected) {
+        const gradient = ctx.createRadialGradient(pos.x - 5, pos.y - 5, 2, pos.x, pos.y, STATE_RADIUS)
+        gradient.addColorStop(0, "rgba(255, 255, 255, 0.7)") // More transparent highlight
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0.1)") // Very subtle gradient
+        ctx.fillStyle = gradient
+        ctx.fill()
+      }
+
       ctx.strokeStyle = isSimSelected
-        ? "brown"
+        ? selectedColor
         : state.id === fsm.startingState
           ? startingColor
           : state.isTerminating
             ? terminatingColor
-            : stateColor;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+            : stateColor
+      ctx.lineWidth = isSimSelected ? 3 : 2
+      ctx.stroke()
+
       if (state.isTerminating) {
-        ctx.beginPath();
-        ctx.arc(pos.x, pos.y, STATE_RADIUS - 5, 0, 2 * Math.PI);
-        ctx.stroke();
+        ctx.beginPath()
+        ctx.arc(pos.x, pos.y, STATE_RADIUS - 5, 0, 2 * Math.PI)
+        ctx.stroke()
       }
 
-      ctx.fillStyle = textColor;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold 14px sans-serif";
-      ctx.fillText(state.id, pos.x, pos.y);
+      ctx.fillStyle = textColor
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
+      ctx.font = isSimSelected ? "bold 16px sans-serif" : "bold 14px sans-serif"
+      ctx.fillText(state.id, pos.x, pos.y)
     }
-  }, [fsm, positions, currentSimState]);
 
+    // Request animation frame if we're animating
+    if (animationProgress > 0 && animationProgress < 1) {
+      animationRef.current = requestAnimationFrame(updateAnimation)
+    }
+  }, [fsm, positions, currentSimState, animationProgress, animationFrom, animationTo])
+
+  // Add animation update function
+  const updateAnimation = () => {
+    if (animationStartTime === null) return
+
+    const elapsed = Date.now() - animationStartTime
+    const progress = Math.min(elapsed / ANIMATION_DURATION, 1)
+
+    setAnimationProgress(progress)
+
+    if (progress >= 1) {
+      // Animation complete
+      setAnimationProgress(0)
+      setAnimationFrom(null)
+      setAnimationTo(null)
+      setAnimationStartTime(null)
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+        animationRef.current = null
+      }
+    }
+  }
+
+  // Modify the simulation effect to include animation
   useEffect(() => {
-    if (!isSimulating || !fsm || fsm.type !== "MIN_DFA") return;
+    if (!isSimulating || !fsm || fsm.type !== "MIN_DFA") return
 
     if (currentIndex >= inputText.length) {
-      setIsSimulating(false);
-      const currentState = fsm.states.find((s) => s.id === currentSimState);
-      setStatus(currentState?.isTerminating ? "Matched!" : "Failed!");
-      return;
+      setIsSimulating(false)
+      const currentState = fsm.states.find((s) => s.id === currentSimState)
+      setStatus(currentState?.isTerminating ? "Matched!" : "Failed!")
+      return
     }
 
     const timer = setTimeout(() => {
-      const symbol = inputText[currentIndex];
-      const transition = fsm.transitions.find(
-        (t) => t.from === currentSimState && t.symbol === symbol,
-      );
+      const symbol = inputText[currentIndex]
+      const transition = fsm.transitions.find((t) => t.from === currentSimState && t.symbol === symbol)
 
       if (transition) {
-        setCurrentSimState(transition.to);
-        setCurrentIndex((prev) => prev + 1);
+        // Start animation before changing state
+        setAnimationFrom(transition.from)
+        setAnimationTo(transition.to)
+        setAnimationStartTime(Date.now())
+        setAnimationProgress(0.01) // Start animation
+
+        // Schedule state change after animation completes
+        setTimeout(() => {
+          setCurrentSimState(transition.to)
+          setCurrentIndex((prev) => prev + 1)
+        }, ANIMATION_DURATION)
       } else {
-        setIsSimulating(false);
-        setStatus("Failed!");
+        setIsSimulating(false)
+        setStatus("Failed!")
       }
-    }, simulationDelay);
+    }, simulationDelay)
 
-    return () => clearTimeout(timer);
-  }, [
-    isSimulating,
-    currentIndex,
-    inputText,
-    currentSimState,
-    fsm,
-    simulationDelay,
-  ]);
+    return () => clearTimeout(timer)
+  }, [isSimulating, currentIndex, inputText, currentSimState, fsm, simulationDelay])
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!canvasRef.current || !fsm) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    for (const state of fsm.states) {
-      const pos = positions[state.id];
-      if (!pos) continue;
-      const dist = Math.hypot(x - pos.x, y - pos.y);
-      if (dist < STATE_RADIUS) {
-        setDraggingState(state.id);
-        setOffset({ x: x - pos.x, y: y - pos.y });
-        break;
+  // Clean up animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
       }
     }
-  };
+  }, [])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!canvasRef.current || !fsm) return
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    for (const state of fsm.states) {
+      const pos = positions[state.id]
+      if (!pos) continue
+      const dist = Math.hypot(x - pos.x, y - pos.y)
+      if (dist < STATE_RADIUS) {
+        setDraggingState(state.id)
+        setOffset({ x: x - pos.x, y: y - pos.y })
+        break
+      }
+    }
+  }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingState || !canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - offset.x;
-    const y = e.clientY - rect.top - offset.y;
+    if (!draggingState || !canvasRef.current) return
+    const rect = canvasRef.current.getBoundingClientRect()
+    const x = e.clientX - rect.left - offset.x
+    const y = e.clientY - rect.top - offset.y
     setPositions((prev) => ({
       ...prev,
       [draggingState]: { x, y },
-    }));
-  };
+    }))
+  }
 
   const handleMouseUp = () => {
-    setDraggingState(null);
-  };
+    setDraggingState(null)
+  }
 
   const handleExportPNG = () => {
-    handleReset();
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const dataURL = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.download = `${fsm?.type || "fsm"}.png`;
-    link.href = dataURL;
-    link.click();
-  };
+    handleReset()
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const dataURL = canvas.toDataURL("image/png")
+    const link = document.createElement("a")
+    link.download = `${fsm?.type || "fsm"}.png`
+    link.href = dataURL
+    link.click()
+  }
 
   const handleReset = () => {
-    setIsSimulating(false);
-    setCurrentSimState(null);
-    setCurrentIndex(0);
-    setStatus(null);
-  };
+    setIsSimulating(false)
+    setCurrentSimState(null)
+    setCurrentIndex(0)
+    setStatus(null)
+  }
 
   const handleStartSimulation = () => {
-    if (!fsm?.startingState || inputText.length === 0) return;
-    setStatus(null);
+    if (!fsm?.startingState || inputText.length === 0) return
+    setStatus(null)
     if (!currentSimState) {
-      setCurrentSimState(fsm?.startingState);
-      setCurrentIndex(0);
+      setCurrentSimState(fsm?.startingState)
+      setCurrentIndex(0)
     }
-    setIsSimulating(true);
-  };
+    setIsSimulating(true)
+  }
 
   const getStatusIcon = () => {
-    if (!status) return null;
+    if (!status) return null
     if (status.includes("Matched")) {
-      return <CheckCircle className="text-green-500 mr-1" />;
+      return <CheckCircle className="text-green-500 mr-1" />
     }
-    return <Cancel className="text-red-500 mr-1" />;
-  };
-
+    return <Cancel className="text-red-500 mr-1" />
+  }
 
   if (!fsm) {
     return (
@@ -547,12 +693,10 @@ const FSMVisualizer = () => {
             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
           ></path>
         </svg>
-        <h1 className="text-5xl font-extrabold text-gray-400 mb-4 tracking-wider">
-          Oops! FSM Not Found.
-        </h1>
+        <h1 className="text-5xl font-extrabold text-gray-400 mb-4 tracking-wider">Oops! FSM Not Found.</h1>
         <p className="text-xl text-gray-400 text-center mb-6 max-w-md">
-          Looks like your Finite State Machine (FSM) hasn't been generated yet. 
-          It's probably lost in the void—let's get you back to safety!
+          Looks like your Finite State Machine (FSM) hasn't been generated yet. It's probably lost in the void—let's get
+          you back to safety!
         </p>
         <a
           href="/"
@@ -561,7 +705,7 @@ const FSMVisualizer = () => {
           Back to Homepage
         </a>
       </div>
-    );
+    )
   }
 
   return (
@@ -591,16 +735,11 @@ const FSMVisualizer = () => {
 
       {fsm.type === "MIN_DFA" && (
         <div className="max-w-4xl mx-auto bg-card rounded-lg shadow-md p-6 mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-text">
-            Text Match Simulation
-          </h3>
+          <h3 className="text-xl font-semibold mb-4 text-text">Text Match Simulation</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
-              <label
-                htmlFor="fsm-input"
-                className="block text-sm font-medium text-text mb-2"
-              >
+              <label htmlFor="fsm-input" className="block text-sm font-medium text-text mb-2">
                 Input String
               </label>
               <input
@@ -632,9 +771,7 @@ const FSMVisualizer = () => {
                 />
                 <span className="text-text text-sm ml-2">Slow</span>
               </div>
-              <div className="text-right text-text text-sm mt-1">
-                {simulationDelay}ms
-              </div>
+              <div className="text-right text-text text-sm mt-1">{simulationDelay}ms</div>
             </div>
           </div>
 
@@ -643,9 +780,7 @@ const FSMVisualizer = () => {
               {status && (
                 <div
                   className={`flex items-center px-4 py-2 rounded-full ${
-                    status.includes("Matched")
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                    status.includes("Matched") ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
                   {getStatusIcon()}
@@ -655,9 +790,7 @@ const FSMVisualizer = () => {
 
               <div className="bg-muted rounded-md px-3 py-1">
                 <span className="text-text text-sm mr-2">Position:</span>
-                <span className="text-text font-mono font-bold">
-                  {currentIndex}
-                </span>
+                <span className="text-text font-mono font-bold">{currentIndex}</span>
               </div>
             </div>
 
@@ -687,7 +820,7 @@ const FSMVisualizer = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default FSMVisualizer;
+export default FSMVisualizer
